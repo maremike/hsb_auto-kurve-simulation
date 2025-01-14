@@ -12,3 +12,8 @@ NEIGUNGSWINKEL = 5.0
 
 # Schrittweite [Meter]
 SCHRITTWEITE = 0.1
+
+# Pseudowerte
+masse = 1000 # kg
+mueHr = 0.95
+mueGr = 0.70
