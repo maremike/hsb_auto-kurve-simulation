@@ -12,11 +12,29 @@ from scipy.optimize import minimize
 def conditions(x, turnAngle, velocity, airDensity):
     turnIncline, mass, staticFriction, cdValue, frontArea = x
 
-    radius = 2.5 / np.tan(turnAngle)  # Wheel distance: e.g. 2.5 m
-    F_centripetal = mass * velocity**2 / radius
-    F_staticFriction = staticFriction * mass * gravityAcceleration * np.cos(turnIncline)
-    f_incline = mass * gravityAcceleration * np.sin(turnIncline)
-    return F_staticFriction + f_incline - F_centripetal  # Condition for the car to stay in the turn
+    f_drag = 0.5 * airDensity * cdValue * frontArea * velocity**2
+    f_friction = mass * gravityAcceleration * staticFriction
+    radius = velocity**2 / (gravityAcceleration * np.tan(turnIncline))
+    f_centripetal = mass * velocity**2 / radius
+    f_gravity = mass * gravityAcceleration
+    f_centrifugal = f_centripetal
+    f_velocity = f_drag
+
+    # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
+    return [
+        #f_friction - f_centripetal,  # Ensure friction can sustain the turn
+        #turnIncline - CONSTRAINTS["turnIncline"][0],  # turnIncline >= lower bound
+        #CONSTRAINTS["turnIncline"][1] - turnIncline,  # turnIncline <= upper bound
+        #frontArea - CONSTRAINTS["frontArea"][0],  # frontArea >= lower bound
+        #CONSTRAINTS["frontArea"][1] - frontArea,  # frontArea <= upper bound
+        #cdValue - CONSTRAINTS["cdValue"][0],  # cdValue >= lower bound
+        #CONSTRAINTS["cdValue"][1] - cdValue,  # cdValue <= upper bound
+        #mass - CONSTRAINTS["mass"][0],  # mass >= lower bound
+        #CONSTRAINTS["mass"][1] - mass,  # mass <= upper bound
+        #staticFriction - CONSTRAINTS["staticFriction"][0],  # staticFriction >= lower bound
+        #CONSTRAINTS["staticFriction"][1] - staticFriction  # staticFriction <= upper bound
+    ]
+
 
 def weighting(x):
     turnIncline, mass, staticFriction, cdValue, frontArea = x
@@ -45,17 +63,24 @@ def optimize():
     # optimize with scipy minimize (SLSQP method)
     result = minimize(weighting, x0, method="SLSQP", bounds=bounds, constraints=constraints)
 
+    if result.success:
+        print(f"\t{result.message}")
+        print(f"\t{result.nit} amount of iterations performed.")
 
-    # results
-    print("\tInput values:")
-    print("\tTurn angle [deg]:", turnAngle)
-    print("\tVelocity [m/s]:", velocity)
-    print("\tAir density [kg/m³]:", airDensity)
-    print("\n\tOutput values:")
-    print("\tTurn incline [deg]:", result.x[0])
-    print("\tMass [kg]:", result.x[1])
-    print("\tStatic friction:", result.x[2])
-    print("\tCd-Value:", result.x[3])
-    print("\tFront area [m²]:", result.x[4])
+        print("\n\tInput values:")
+        print("\tTurn angle [deg]:", turnAngle)
+        print("\tVelocity [m/s]:", velocity)
+        print("\tAir density [kg/m³]:", airDensity)
 
-    print("Optimization finished.")
+        print("\n\tOutput values:")
+        print("\tTurn incline [deg]:", result.x[0])
+        print("\tMass [kg]:", result.x[1])
+        print("\tStatic friction:", result.x[2])
+        print("\tCd-Value:", result.x[3])
+        print("\tFront area [m²]:", result.x[4])
+
+        print("Optimization finished.")
+    else:
+        print(result.message)
+        print("Optimization failed.")
+        exit(-1)
