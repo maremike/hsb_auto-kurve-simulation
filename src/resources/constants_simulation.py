@@ -2,7 +2,7 @@ import numpy as np
 
 # simulation relevant constants:
 turnAngle = 30 # [°]
-velocity = 15.0 # [m/s]
+velocity = 40.0 # [m/s]
 airDensity = 1.2 # [kg/m³]
 
 # standard values:
