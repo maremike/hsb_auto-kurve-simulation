@@ -50,6 +50,7 @@ def weighting(x):
     return w1 * mass + w2 * cdValue + w3 * frontArea + w4 * staticFriction # following values should be as low as possible
 
 def findStartingValue(bounds, constraints):
+    print("\tFinding starting value", end='')
     for i in CONSTRAINTS["turnIncline"]:
         for j in CONSTRAINTS["mass"]:
             for k in CONSTRAINTS["staticFriction"]:
@@ -58,9 +59,10 @@ def findStartingValue(bounds, constraints):
                         x0 = [i, j, k, l, m]
                         result = minimize(weighting, x0, method="SLSQP", bounds=bounds, constraints=constraints)
                         if result.success:
+                            print("\n\tStarting value found.")
                             return x0
                         else:
-                            print(".", end =" ")
+                            print('.', end='')
 
 def optimize():
     print("Optimizing values...")
