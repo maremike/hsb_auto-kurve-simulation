@@ -1,1 +1,1 @@
-# Ziel: Möglichst gerine Werte
+# Goal:

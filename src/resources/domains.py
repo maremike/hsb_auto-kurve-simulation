@@ -1,23 +1,27 @@
+import sympy
 from sympy import Interval
 
-# Masse: 800-3000 [kg]
-masse = Interval(800, 3000) # Betrachtet einen PKW
+# mass: 800-3000 [kg]
+mass = Interval(800, 3000) # considering a standard automobile
 
-# Reibwert
-haftreibungReifen = Interval(0.5, 0.9) # Betrachtet einen Gummireifen auf einem Asphalt bei Nässe und Trockenheit
-gleitreibungReifen = Interval(0.15, 0.3) # Betrachtet einen Gummireifen auf einem Asphalt bei Nässe und Trockenheit
+# friction values
+staticFriction = Interval(0.5, 0.9) # considering rubber tires on asphalt during wet and dry conditions
+dynamicFriction = Interval(0.15, 0.3) # considering rubber tires on asphalt during wet and dry conditions
 
-# Luftwiderstandskoeffizient
-cwWert = Interval(0.21, 0.46) # Mögliche Werte bei modernen PKWs
+# air resistance coefficient
+cdValue = Interval(0.21, 0.46) # possible values of standard automobiles
 
-# Stirnfläche des Autos [m²]
-stirnflaeche = Interval(1.8, 3.4) # Mögliche Werte bei PKWs bis 3 Tonnen
+# front area of the car [m²]
+frontArea = Interval(1.8, 3.4) # possible values of standard automobiles up to 3 tons
 
-# Luftdichte [kg/m³]
-luftdichte = Interval(1.2922, 1.1455) # 0-35 Grad Celsius
+# air density [kg/m³]
+airDensity = Interval(1.2922, 1.1455) # 0-35 degrees (celsius)
 
-# Kurvenneigung [Grad]
-kurvenneigung = Interval(0, 89) # 0-89 Grad
+# turn inclination [degrees]
+turnIncline = Interval(0, 89) # 0-89 degrees
 
-# Lenkwinkel [Grad]
-lenkwinkel = Interval(0, 80) # 0-80 Grad
+# turning angle  [degrees]
+turnAngle = Interval(0, 80) # 0-80 degrees
+
+# velocity [m/s]
+velocity = Interval(0, 42) # 0-150 km/h

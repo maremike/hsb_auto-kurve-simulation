@@ -1,20 +1,20 @@
 import numpy as np
 
-# Lenkwinkel [°]
-LENKWINKEL = 30.0
+# turn angle [°]
+turnAngle = 30.0
 
-# Geschwindigkeit in [m/s]
-GESCHWINDIGKEIT = 15.0
+# velocity in [m/s]
+velocity = 15.0
 
-# Erdbeschleunigung [m/s^2]
-ERDANZIEHUNGSBESCHLEUNIGUNG = 9.81
+# gravity acceleration [m/s^2]
+gravityAcceleration = 9.81
 
-# Schrittweite [m?]
-SCHRITTWEITE = 0.1
+# increment [m?]
+increments = 0.1
 
-# Zeit pro Simulationsschritt [ms]
-SCHRITTZEIT = 1
+# time per simulation step [ms]
+incrementTime = 1
 
 
-# Initialisierung
+# initialization
 startPosition = np.array([0, 0, 0])
