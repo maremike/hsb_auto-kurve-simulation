@@ -1,20 +1,13 @@
 import numpy as np
 
-# turn angle [°]
-turnAngle = 30.0
+# simulation relevant constants:
+turnAngle = 30 # turn angle [°]
+velocity = 15.0 # velocity in [m/s]
 
-# velocity in [m/s]
-velocity = 15.0
-
-# gravity acceleration [m/s^2]
-gravityAcceleration = 9.81
-
-# increment [m?]
-increments = 0.1
-
-# time per simulation step [ms]
-incrementTime = 1
-
+# standard values:
+gravityAcceleration = 9.81 # gravity acceleration [m/s^2]
+incrementDistance = 0.1 # increment [m]
+incrementTime = 1 # time per simulation step [s]
 
 # initialization
 startPosition = np.array([0, 0, 0])
