@@ -13,7 +13,7 @@ CONSTRAINTS = {
     "frontArea": (1.8, 3.4), # possible values of standard automobiles up to 3 tons
 
     # air density [kg/m³]
-    "airDensity": (1.2922, 1.1455), # 0-35 degrees (celsius)
+    "airDensity": (1.1455, 1.2922), # 0-35 degrees (celsius)
 
     # turn inclination [degrees]
     "turnIncline": (0, 89), # 0-89 degrees
