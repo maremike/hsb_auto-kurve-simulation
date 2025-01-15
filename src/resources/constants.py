@@ -1,19 +1,20 @@
-# Lenkwinkel [Grad]
+import numpy as np
+
+# Lenkwinkel [°]
 LENKWINKEL = 30.0
 
-# Geschwindigkeit in [Meter pro Sekunde]
+# Geschwindigkeit in [m/s]
 GESCHWINDIGKEIT = 15.0
 
-# Erdbeschleunigung [Meter pro Sekunde^2]
+# Erdbeschleunigung [m/s^2]
 ERDANZIEHUNGSBESCHLEUNIGUNG = 9.81
 
-# Neigungswinkel [Grad]
-NEIGUNGSWINKEL = 5.0
-
-# Schrittweite [Meter]
+# Schrittweite [m?]
 SCHRITTWEITE = 0.1
 
-# Pseudowerte
-masse = 1000 # kg
-mueHr = 0.95
-mueGr = 0.70
+# Zeit pro Simulationsschritt [ms]
+SCHRITTZEIT = 1
+
+
+# Initialisierung
+startPosition = np.array([0, 0, 0])
