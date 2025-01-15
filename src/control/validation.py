@@ -1,6 +1,22 @@
 import types
-from resources import constants
+from resources import constants_simulation
 from resources import domains
+
+def validate():
+    print("Validating values...")
+    parameters = extract_parameters(constants_simulation)  # Extract parameters from constants_simulation.py
+    validation_errors, ignored_count = validate_parameters(parameters, domains)  # Validate values by comparing with domains
+
+    # Return results
+    if validation_errors:
+        for error in validation_errors:
+            print("\t" + error)
+        print("Validation failed.")
+        exit(-1)
+    else:
+        print(f"\t{ignored_count} parameters have no domain and have been ignored.")
+        print("\tParameters with domains are not out of bounds.")
+        print("Validation finished.")
 
 def extract_parameters(module):
     """
@@ -23,18 +39,6 @@ def validate_parameters(parameters, domain_module):
             if not domain.contains(value):
                 errors.append(f"'{param}' ({value}) is out of bounds {domain}.")
         else:
-            print(f"'{param}' has no defined domain. Ignoring...")
+            print(f"\t'{param}' has no defined domain. Ignoring...")
             ignored_count += 1  # Increment ignored parameters counter
     return errors, ignored_count
-
-def validate():
-    parameters = extract_parameters(constants)  # Extract parameters from constants.py
-    validation_errors, ignored_count = validate_parameters(parameters, domains)  # Validate values by comparing with domains
-
-    # Return results
-    if validation_errors:
-        for error in validation_errors:
-            print(error)
-    else:
-        print(f"{ignored_count} parameters have no domain and have been ignored.")
-        print("Parameters with domains are not out of bounds.")
