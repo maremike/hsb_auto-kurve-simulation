@@ -1,44 +1,42 @@
-import types
+import numpy as np
+from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, incrementDistance, incrementTime, startPosition
+from resources.constraints import CONSTRAINTS
 from resources import constants_simulation
-from resources import domains
+
+def validate_parameters(parameters, constraints):
+    """
+    Validates parameters against the defined constraints in CONSTANT_RANGES.
+    """
+    errors = []
+    ignored_count = 0  # Track the number of ignored parameters
+    for param, value in parameters.items():
+        if param in constraints:  # Check if a constraint is defined for the parameter
+            min_value, max_value = constraints[param]
+            if not (min_value <= value <= max_value):
+                errors.append(f"'{param}' ({value}) is out of bounds [{min_value}, {max_value}].")
+        else:
+            print(f"\t'{param}' has no defined constraint. Ignoring...")
+            ignored_count += 1  # Increment ignored parameters counter
+    return errors, ignored_count
 
 def validate():
     print("Validating values...")
-    parameters = extract_parameters(constants_simulation)  # Extract parameters from constants_simulation.py
-    validation_errors, ignored_count = validate_parameters(parameters, domains)  # Validate values by comparing with domains
 
-    # Return results
+    # Create a dictionary of all constants to validate by dynamically getting the variables
+    parameters = {name: value for name, value in globals().items()
+                  if name in dir(constants_simulation) and not name.startswith('__')
+                  and not isinstance(value, type(constants_simulation))}
+
+    # Validate all parameters
+    validation_errors, ignored_count = validate_parameters(parameters, CONSTRAINTS)
+
+    # Output validation results
     if validation_errors:
         for error in validation_errors:
             print("\t" + error)
         print("Validation failed.")
         exit(-1)
     else:
-        print(f"\t{ignored_count} parameters have no domain and have been ignored.")
-        print("\tParameters with domains are not out of bounds.")
+        print(f"\t{ignored_count} parameters have no constraint and have been ignored.")
+        print("\tParameters with constraints are not out of bounds.")
         print("Validation finished.")
-
-def extract_parameters(module):
-    """
-    Extracts all variables from a module, which are not private, not a function, and not an imported module.
-    """
-    return {
-        name: value for name, value in vars(module).items()
-        if not name.startswith("_") and not callable(value) and not isinstance(value, types.ModuleType)
-    }
-
-def validate_parameters(parameters, domain_module):
-    """
-    Validates parameters for defined domains.
-    """
-    errors = []
-    ignored_count = 0  # Track the number of ignored parameters
-    for param, value in parameters.items():
-        if hasattr(domain_module, param):  # checks whether domain is defined.
-            domain = getattr(domain_module, param)
-            if not domain.contains(value):
-                errors.append(f"'{param}' ({value}) is out of bounds {domain}.")
-        else:
-            print(f"\t'{param}' has no defined domain. Ignoring...")
-            ignored_count += 1  # Increment ignored parameters counter
-    return errors, ignored_count
