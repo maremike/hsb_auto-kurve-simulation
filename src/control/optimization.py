@@ -3,7 +3,8 @@ import sympy as sp
 from scipy.optimize import minimize
 
 from resources.constraints import CONSTRAINTS
-from control.formulae import get_f_drag, get_f_friction, get_f_centripetal, get_radius, get_f_gravity, get_f_neutral
+from control.formulae import get_f_drag, get_f_friction, get_f_centripetal, get_radius, get_f_gravity, get_f_neutral, \
+    get_f_velocity, get_new_f_velocity
 
 from resources.constraints import CONSTRAINTS
 from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, airDensity
@@ -16,29 +17,29 @@ def conditions(x, turnAngle, velocity, airDensity, gravityAcceleration):
 
     f_drag = get_f_drag(airDensity, cdValue, frontArea, velocity)
     f_gravity = get_f_gravity(mass, gravityAcceleration)
-    f_centripetal = get_f_centripetal(mass, velocity, get_radius(velocity, gravityAcceleration, turnIncline)) # Allgemeine, nicht echte
     f_neutral = get_f_neutral(turnIncline, f_gravity)
-    f_friction = get_f_friction(f_neutral, staticFriction)
-    #f_velocity0 = ...
-    #f_velocity1 = ...
-    #f_centrifugal = f_velocity1 - f_velocity0
+    f_friction = get_f_friction(f_neutral, staticFriction, turnIncline)
+    f_centripetal = get_f_centripetal(mass, velocity, get_radius(velocity, gravityAcceleration, turnIncline), f_friction)
+    f_velocity = get_f_velocity(f_drag)
+    f_new_velocity = get_new_f_velocity(f_velocity, turnAngle)
+    f_centrifugal = f_new_velocity - f_velocity
 
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
     playroom = 1
     return [
-        turnIncline - (CONSTRAINTS["turnIncline"][0] / playroom),  # turnIncline >= lower bound
-        (CONSTRAINTS["turnIncline"][1] * playroom) - turnIncline,  # turnIncline <= upper bound
-        frontArea - (CONSTRAINTS["frontArea"][0] / playroom),  # frontArea >= lower bound
-        (CONSTRAINTS["frontArea"][1] * playroom) - frontArea,  # frontArea <= upper bound
-        cdValue - (CONSTRAINTS["cdValue"][0] / playroom),  # cdValue >= lower bound
-        (CONSTRAINTS["cdValue"][1] * playroom) - cdValue,  # cdValue <= upper bound
-        mass - (CONSTRAINTS["mass"][0] / playroom),  # mass >= lower bound
-        (CONSTRAINTS["mass"][1] * playroom) - mass,  # mass <= upper bound
-        staticFriction - (CONSTRAINTS["staticFriction"][0] / playroom),  # staticFriction >= lower bound
-        (CONSTRAINTS["staticFriction"][1] * playroom) - staticFriction  # staticFriction <= upper bound
-        # |f_centripetal| >= |f_centrifugal|
-        # |f_centripetal| = |f_drag + f_friction|
-        # |f_gravity| = |f_neutral + f_centripetal|
+        turnIncline - (CONSTRAINTS["turnIncline"][0] / playroom), # turnIncline >= lower bound
+        (CONSTRAINTS["turnIncline"][1] * playroom) - turnIncline, # turnIncline <= upper bound
+        frontArea - (CONSTRAINTS["frontArea"][0] / playroom), # frontArea >= lower bound
+        (CONSTRAINTS["frontArea"][1] * playroom) - frontArea, # frontArea <= upper bound
+        cdValue - (CONSTRAINTS["cdValue"][0] / playroom), # cdValue >= lower bound
+        (CONSTRAINTS["cdValue"][1] * playroom) - cdValue, # cdValue <= upper bound
+        mass - (CONSTRAINTS["mass"][0] / playroom), # mass >= lower bound
+        (CONSTRAINTS["mass"][1] * playroom) - mass, # mass <= upper bound
+        staticFriction - (CONSTRAINTS["staticFriction"][0] / playroom), # staticFriction >= lower bound
+        (CONSTRAINTS["staticFriction"][1] * playroom) - staticFriction, # staticFriction <= upper bound
+        np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal), # |f_centripetal| >= |f_centrifugal|
+        np.linalg.norm(f_centripetal) - np.linalg.norm(f_drag + f_friction), # |f_centripetal| = |f_drag + f_friction|
+        np.linalg.norm(f_gravity) - np.linalg.norm(f_neutral + f_centripetal) # |f_gravity| = |f_neutral + f_centripetal|
     ]
 
 def weighting(x):

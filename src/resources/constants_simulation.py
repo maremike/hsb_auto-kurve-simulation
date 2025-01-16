@@ -11,4 +11,4 @@ incrementDistance = 0.1 # increment [m]
 incrementTime = 1 # time per simulation step [s]
 
 # initialization
-startPosition = np.array([0, 0, 0])
+currentPosition = [0, 0, 0, 0, 0, 0] # [x, y, z, roll, pitch, yaw]
