@@ -1,7 +1,9 @@
 import numpy as np
 import sympy as sp
 from scipy.optimize import minimize
+
 from resources.constraints import CONSTRAINTS
+from control.formulae import get_f_drag, get_f_friction, get_f_centripetal, get_radius, get_f_gravity, get_f_neutral
 
 from resources.constraints import CONSTRAINTS
 from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, airDensity
@@ -9,26 +11,19 @@ from resources.constants_simulation import turnAngle, velocity, gravityAccelerat
 import numpy as np
 from scipy.optimize import minimize
 
-def conditions(x, turnAngle, velocity, airDensity):
-    turnIncline, mass, staticFriction, cdValue, frontArea = x
+def conditions(x, turnAngle, velocity, airDensity, gravityAcceleration):
+    turnIncline, mass, staticFriction, cdValue, frontArea = x # todo: more variables (center of mass, wheel distance)
 
-    #print(f"Evaluating constraints at x = {x}")
-    #f_drag = 0.5 * airDensity * cdValue * frontArea * velocity**2
-    #f_friction = mass * gravityAcceleration * staticFriction
-    #radius = velocity**2 / (gravityAcceleration * np.tan(turnIncline))
-    #f_centripetal = mass * velocity**2 / radius
-    #f_gravity = mass * gravityAcceleration
-    #f_centrifugal = f_centripetal
-    #f_velocity = f_drag
+    f_drag = get_f_drag(airDensity, cdValue, frontArea, velocity)
+    f_gravity = get_f_gravity(mass, gravityAcceleration)
+    f_centripetal = get_f_centripetal(mass, velocity, get_radius(velocity, gravityAcceleration, turnIncline)) # Allgemeine, nicht echte
+    f_neutral = get_f_neutral(turnIncline, f_gravity)
+    f_friction = get_f_friction(f_neutral, staticFriction)
+    #f_velocity0 = ...
+    #f_velocity1 = ...
+    #f_centrifugal = f_velocity1 - f_velocity0
 
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
-    # |f_centripetal| >= |f_centrifugal|
-    # |f_velocity0| = |f_drag|
-    # |f_velocity1| = |f_drag|
-    # |f_velocity1| = |f_velocity0|
-    # |f_gravity| = |f_neutral - f_centripetal|
-    # |f_centripetal| = |f_drag + f_friction|
-    # check whether all values are inside the constraints
     playroom = 1
     return [
         turnIncline - (CONSTRAINTS["turnIncline"][0] / playroom),  # turnIncline >= lower bound
@@ -41,6 +36,9 @@ def conditions(x, turnAngle, velocity, airDensity):
         (CONSTRAINTS["mass"][1] * playroom) - mass,  # mass <= upper bound
         staticFriction - (CONSTRAINTS["staticFriction"][0] / playroom),  # staticFriction >= lower bound
         (CONSTRAINTS["staticFriction"][1] * playroom) - staticFriction  # staticFriction <= upper bound
+        # |f_centripetal| >= |f_centrifugal|
+        # |f_centripetal| = |f_drag + f_friction|
+        # |f_gravity| = |f_neutral + f_centripetal|
     ]
 
 def weighting(x):
@@ -77,7 +75,7 @@ def optimize():
     ]
 
     # create constraints
-    constraints = [{"type": "ineq", "fun": conditions, "args": (turnAngle, velocity, airDensity)}]
+    constraints = [{"type": "ineq", "fun": conditions, "args": (turnAngle, velocity, airDensity, gravityAcceleration)}]
 
     # find starting value
     x0 = findStartingValue(bounds, constraints)

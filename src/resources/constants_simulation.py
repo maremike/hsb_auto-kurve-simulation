@@ -4,9 +4,9 @@ import numpy as np
 turnAngle = 30 # [°]
 velocity = 40.0 # [m/s]
 airDensity = 1.2 # [kg/m³]
+gravityAcceleration = 9.81 # gravity acceleration [m/s^2]
 
 # standard values:
-gravityAcceleration = 9.81 # gravity acceleration [m/s^2]
 incrementDistance = 0.1 # increment [m]
 incrementTime = 1 # time per simulation step [s]
 
