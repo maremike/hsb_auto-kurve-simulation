@@ -1,8 +1,8 @@
 import numpy as np
 
 # simulation relevant constants:
-turnAngle = 30 # [°]
-velocity = 40.0 # [m/s]
+turnAngle = 60 # [°]
+velocity = 40.9 # [m/s]
 airDensity = 1.2 # [kg/m³]
 gravityAcceleration = 9.81 # gravity acceleration [m/s^2]
 

@@ -1,54 +1,56 @@
 import numpy as np
-import sympy as sp
 from scipy.optimize import minimize
-
 from resources.constraints import CONSTRAINTS
 from control.formulae import get_f_drag, get_f_friction, get_f_centripetal, get_radius, get_f_gravity, get_f_neutral, \
     get_f_velocity, get_new_f_velocity
-
-from resources.constraints import CONSTRAINTS
 from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, airDensity
 
-import numpy as np
-from scipy.optimize import minimize
 
 def conditions(x, turnAngle, velocity, airDensity, gravityAcceleration):
-    turnIncline, mass, staticFriction, cdValue, frontArea = x # todo: more variables (center of mass, wheel distance)
+    turnIncline, mass, staticFriction, cdValue, frontArea = x  # todo: more variables (center of mass, wheel distance)
 
     f_drag = get_f_drag(airDensity, cdValue, frontArea, velocity)
     f_gravity = get_f_gravity(mass, gravityAcceleration)
     f_neutral = get_f_neutral(turnIncline, f_gravity)
     f_friction = get_f_friction(f_neutral, staticFriction, turnIncline)
-    f_centripetal = get_f_centripetal(mass, velocity, get_radius(velocity, gravityAcceleration, turnIncline), f_friction)
+    f_centripetal = get_f_centripetal(mass, velocity, get_radius(velocity, gravityAcceleration, turnIncline),
+                                      f_friction)
     f_velocity = get_f_velocity(f_drag)
     f_new_velocity = get_new_f_velocity(f_velocity, turnAngle)
     f_centrifugal = f_new_velocity - f_velocity
 
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
-    playroom = 1
-    return [
-        turnIncline - (CONSTRAINTS["turnIncline"][0] / playroom), # turnIncline >= lower bound
-        (CONSTRAINTS["turnIncline"][1] * playroom) - turnIncline, # turnIncline <= upper bound
-        frontArea - (CONSTRAINTS["frontArea"][0] / playroom), # frontArea >= lower bound
-        (CONSTRAINTS["frontArea"][1] * playroom) - frontArea, # frontArea <= upper bound
-        cdValue - (CONSTRAINTS["cdValue"][0] / playroom), # cdValue >= lower bound
-        (CONSTRAINTS["cdValue"][1] * playroom) - cdValue, # cdValue <= upper bound
-        mass - (CONSTRAINTS["mass"][0] / playroom), # mass >= lower bound
-        (CONSTRAINTS["mass"][1] * playroom) - mass, # mass <= upper bound
-        staticFriction - (CONSTRAINTS["staticFriction"][0] / playroom), # staticFriction >= lower bound
-        (CONSTRAINTS["staticFriction"][1] * playroom) - staticFriction, # staticFriction <= upper bound
+    inequality_constraints = [
+        turnIncline - (CONSTRAINTS["turnIncline"][0]), # turnIncline >= lower bound
+        (CONSTRAINTS["turnIncline"][1]) - turnIncline, # turnIncline <= upper bound
+        frontArea - (CONSTRAINTS["frontArea"][0]), # frontArea >= lower bound
+        (CONSTRAINTS["frontArea"][1]) - frontArea, # frontArea <= upper bound
+        cdValue - (CONSTRAINTS["cdValue"][0]), # cdValue >= lower bound
+        (CONSTRAINTS["cdValue"][1]) - cdValue, # cdValue <= upper bound
+        mass - (CONSTRAINTS["mass"][0]), # mass >= lower bound
+        (CONSTRAINTS["mass"][1]) - mass, # mass <= upper bound
+        staticFriction - (CONSTRAINTS["staticFriction"][0]), # staticFriction >= lower bound
+        (CONSTRAINTS["staticFriction"][1]) - staticFriction, # staticFriction <= upper bound
         np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal), # |f_centripetal| >= |f_centrifugal|
-        np.linalg.norm(f_centripetal) - np.linalg.norm(f_drag + f_friction), # |f_centripetal| = |f_drag + f_friction|
-        np.linalg.norm(f_gravity) - np.linalg.norm(f_neutral + f_centripetal) # |f_gravity| = |f_neutral + f_centripetal|
     ]
+
+    # equality constraints: h(x) = 0 (conditions must be equal to 0 to succeed)
+    equality_constraints = [
+        #np.linalg.norm(f_centripetal) - np.linalg.norm(f_drag + f_friction), # |f_centripetal| = |f_drag + f_friction|
+        #np.linalg.norm(f_gravity) - np.linalg.norm(f_neutral + f_centripetal) # |f_gravity| = |f_neutral + f_centripetal|
+    ]
+
+    return inequality_constraints, equality_constraints
+
 
 def weighting(x):
     turnIncline, mass, staticFriction, cdValue, frontArea = x
 
     w1, w2, w3, w4 = 1, 1, 1, 1  # weight
-    return w1 * mass + w2 * cdValue + w3 * frontArea + w4 * staticFriction # following values should be as low as possible
+    return w1 * mass + w2 * cdValue + w3 * frontArea + w4 * staticFriction  # following values should be as low as possible
 
-def findStartingValue(bounds, constraints):
+
+def findStartingValue(bounds):
     print("\tFinding starting value", end='')
     for i in CONSTRAINTS["turnIncline"]:
         for j in CONSTRAINTS["mass"]:
@@ -56,12 +58,33 @@ def findStartingValue(bounds, constraints):
                 for l in CONSTRAINTS["cdValue"]:
                     for m in CONSTRAINTS["frontArea"]:
                         x0 = [i, j, k, l, m]
-                        result = minimize(weighting, x0, method="SLSQP", bounds=bounds, constraints=constraints)
+                        cons = constraints(x0)
+                        result = minimize(weighting, x0, method="SLSQP", bounds=bounds, constraints=cons)
                         if result.success:
                             print("\n\tStarting value found.")
                             return x0
                         else:
                             print('.', end='')
+    raise ValueError(f"No valid starting value found.")
+
+
+def constraints(x):
+    # Retrieve constraints
+    g, h = conditions(x, turnAngle, velocity, airDensity, gravityAcceleration)
+
+    # Convert into scipy-compatible format
+    constraints = []
+
+    # Inequality constraints: g(x) >= 0
+    for g_i in g:
+        constraints.append({'type': 'ineq', 'fun': lambda x, g_i=g: g_i})
+
+    # Equality constraints: h(x) = 0
+    for h_i in h:
+        constraints.append({'type': 'eq', 'fun': lambda x, h_i=h: h_i})
+
+    return constraints
+
 
 def optimize():
     print("Optimizing values...")
@@ -75,14 +98,14 @@ def optimize():
         (CONSTRAINTS["frontArea"][0], CONSTRAINTS["frontArea"][1])
     ]
 
-    # create constraints
-    constraints = [{"type": "ineq", "fun": conditions, "args": (turnAngle, velocity, airDensity, gravityAcceleration)}]
-
     # find starting value
-    x0 = findStartingValue(bounds, constraints)
+    x0 = findStartingValue(bounds)
+
+    # create constraints
+    cons = constraints(x0)
 
     # optimize with scipy minimize (SLSQP method)
-    result = minimize(weighting, x0, method="SLSQP", bounds=bounds, constraints=constraints)
+    result = minimize(weighting, x0, method="SLSQP", bounds=bounds, constraints=cons)
 
     if result.success:
         print(f"\t{result.message}")

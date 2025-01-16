@@ -4,7 +4,7 @@ CONSTRAINTS = {
 
     # friction values
     "staticFriction": (0.5, 0.9), # considering rubber tires on asphalt during wet and dry conditions
-    "dynamicFriction": (0.15, 0.3), # considering rubber tires on asphalt during wet and dry conditions
+    #"dynamicFriction": (0.15, 0.3), # considering rubber tires on asphalt during wet and dry conditions
 
     # air resistance coefficient
     "cdValue": (0.21, 0.46), # possible values of standard automobiles
@@ -16,11 +16,11 @@ CONSTRAINTS = {
     "airDensity": (1.1455, 1.2922), # 0-35 degrees (celsius)
 
     # turn inclination [degrees]
-    "turnIncline": (0, 89), # 0-89 degrees
+    "turnIncline": (1, 50), # 1-50 degrees
 
     # turning angle  [degrees]
-    "turnAngle": (0, 80), # 0-80 degrees
+    "turnAngle": (0, 60), # 0-60 degrees
 
     # velocity [m/s]
-    "velocity": (0, 42) # 0-150 km/h
+    "velocity": (0, 69) # 0-250 km/h
 }
