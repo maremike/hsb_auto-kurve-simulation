@@ -65,23 +65,16 @@ def findStartingValue(bounds):
                             return x0
                         else:
                             print('.', end='')
-    raise ValueError(f"No valid starting value found.")
+        print(f"\n\t{result.message}")
+        print("Optimization failed.")
+        exit(-1)
 
 
 def constraints(x):
-    # Retrieve constraints
-    g, h = conditions(x, turnAngle, velocity, airDensity, gravityAcceleration)
+    g, h = conditions(x, turnAngle, velocity, airDensity, gravityAcceleration) # retrieve constraints
 
-    # Convert into scipy-compatible format
-    constraints = []
-
-    # Inequality constraints: g(x) >= 0
-    for g_i in g:
-        constraints.append({'type': 'ineq', 'fun': lambda x, g_i=g: g_i})
-
-    # Equality constraints: h(x) = 0
-    for h_i in h:
-        constraints.append({'type': 'eq', 'fun': lambda x, h_i=h: h_i})
+    constraints = [{'type': 'ineq', 'fun': lambda x, g_i=g_i: g_i} for g_i in g] # inequality constraints: g(x) >= 0
+    constraints.extend({'type': 'eq', 'fun': lambda x, h_i=h_i: h_i} for h_i in h) # equality constraints: h(x) = 0
 
     return constraints
 
@@ -125,6 +118,6 @@ def optimize():
 
         print("Optimization finished.")
     else:
-        print(result.message)
+        print(f"\t{result.message}")
         print("Optimization failed.")
         exit(-1)
