@@ -29,7 +29,7 @@ def get_f_friction(f_neutral, staticFriction, turnIncline):  # parallel to the g
 def get_f_centripetal(mass, velocity, radius, f_friction):  # parallel to the ground (not road)
     # vector points towards the curve (left of the car)
     return get_vectorOrientation(mass * velocity ** 2 / radius + np.linalg.norm(f_friction),
-                                 currentPosition[3], currentPosition[4] - 90, currentPosition[5])
+                                 currentPosition[3], currentPosition[4] + 90, currentPosition[5])
 
 
 def get_f_velocity(f_drag):
@@ -44,7 +44,11 @@ def get_radius(velocity, gravityAcceleration, turnIncline):
     return (velocity ** 2 / (gravityAcceleration * np.tan(turnIncline)))
 
 
-def rotation_matrix(roll, yaw, pitch):
+def test(vector):
+    return get_vectorOrientation(vector, 0, 90, 90)
+
+
+def rotation_matrix(roll, yaw, pitch):  # roll = x, pitch = y, yaw = z (clockwise)
     # convert angles to radians
     yaw = np.radians(yaw)
     pitch = np.radians(pitch)
@@ -71,8 +75,9 @@ def rotation_matrix(roll, yaw, pitch):
     return r
 
 
-def get_vectorOrientation(length, roll, yaw, pitch):
+def get_vectorOrientation(length, roll, yaw, pitch): # roll = x, pitch = y, yaw = z (counterclockwise)
     r = rotation_matrix(roll, yaw, pitch)  # creates rotation matrix using the specified orientations
+    print(r)
     unit_vector = np.array([0, 0, -length])  # initial orientation points towards the negative z-axis
     rotated_vector = r @ unit_vector  # rotates the vector
     return rotated_vector

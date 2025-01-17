@@ -1,8 +1,10 @@
+from doctest import testfile
+
 import numpy as np
 from scipy.optimize import minimize
 from resources.constraints import CONSTRAINTS
 from control.formulae import get_f_drag, get_f_friction, get_f_centripetal, get_radius, get_f_gravity, get_f_neutral, \
-    get_f_velocity, get_new_f_velocity
+    get_f_velocity, get_new_f_velocity, test
 from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, airDensity
 
 
@@ -33,12 +35,12 @@ def conditions(x, turnAngle, velocity, airDensity, gravityAcceleration):
         (CONSTRAINTS["staticFriction"][1]) - staticFriction, # staticFriction <= upper bound
         np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal), # |f_centripetal| >= |f_centrifugal|
     ]
-
     # equality constraints: h(x) = 0 (conditions must be equal to 0 to succeed)
     equality_constraints = [
         #np.linalg.norm(f_centripetal) - np.linalg.norm(f_drag + f_friction), # |f_centripetal| = |f_drag + f_friction|
         #np.linalg.norm(f_gravity) - np.linalg.norm(f_neutral + f_centripetal) # |f_gravity| = |f_neutral + f_centripetal|
     ]
+    print(f_centripetal, " ", f_drag, " ", f_friction)
 
     return inequality_constraints, equality_constraints
 
@@ -81,6 +83,11 @@ def constraints(x):
 
 def optimize():
     print("Optimizing values...")
+
+    vector = [0, 1, 0]
+    print(np.linalg.norm(vector), " ", vector)
+    vector = test(np.linalg.norm(vector))
+    print(np.linalg.norm(vector), " ", vector)
 
     # create bounds
     bounds = [
