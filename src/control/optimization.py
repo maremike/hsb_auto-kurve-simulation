@@ -3,23 +3,24 @@ from doctest import testfile
 import numpy as np
 from scipy.optimize import minimize
 from resources.constraints import CONSTRAINTS
-from control.formulae import get_f_drag, get_f_friction, get_f_centripetal, get_radius, get_f_gravity, get_f_neutral, \
-    get_f_velocity, get_new_f_velocity, test
+from control.formulae import init_f_drag, init_f_friction, init_f_centripetal, get_radius, init_f_gravity, \
+    init_f_neutral, \
+    init_f_velocity, init_new_f_velocity, init_new_f_centrifugal
 from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, airDensity
 
 
 def conditions(x, turnAngle, velocity, airDensity, gravityAcceleration):
     turnIncline, mass, staticFriction, cdValue, frontArea = x  # todo: more variables (center of mass, wheel distance)
 
-    f_drag = get_f_drag(airDensity, cdValue, frontArea, velocity)
-    f_gravity = get_f_gravity(mass, gravityAcceleration)
-    f_neutral = get_f_neutral(turnIncline, f_gravity)
-    f_friction = get_f_friction(f_neutral, staticFriction, turnIncline)
-    f_centripetal = get_f_centripetal(mass, velocity, get_radius(velocity, gravityAcceleration, turnIncline),
+    f_drag = init_f_drag(airDensity, cdValue, frontArea, velocity)
+    f_gravity = init_f_gravity(mass, gravityAcceleration)
+    f_neutral = init_f_neutral(turnIncline, f_gravity)
+    f_friction = init_f_friction(f_neutral, staticFriction, turnIncline)
+    f_centripetal = init_f_centripetal(mass, velocity, get_radius(velocity, gravityAcceleration, turnIncline),
                                       f_friction)
-    f_velocity = get_f_velocity(f_drag)
-    f_new_velocity = get_new_f_velocity(f_velocity, turnAngle)
-    f_centrifugal = f_new_velocity - f_velocity
+    f_velocity = init_f_velocity(f_drag)
+    f_new_velocity = init_new_f_velocity(f_velocity, turnAngle)
+    f_centrifugal = init_new_f_centrifugal(f_velocity, f_new_velocity)
 
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
     inequality_constraints = [
@@ -32,15 +33,14 @@ def conditions(x, turnAngle, velocity, airDensity, gravityAcceleration):
         mass - (CONSTRAINTS["mass"][0]), # mass >= lower bound
         (CONSTRAINTS["mass"][1]) - mass, # mass <= upper bound
         staticFriction - (CONSTRAINTS["staticFriction"][0]), # staticFriction >= lower bound
-        (CONSTRAINTS["staticFriction"][1]) - staticFriction, # staticFriction <= upper bound
-        np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal), # |f_centripetal| >= |f_centrifugal|
+        (CONSTRAINTS["staticFriction"][1]) - staticFriction # staticFriction <= upper bound
     ]
     # equality constraints: h(x) = 0 (conditions must be equal to 0 to succeed)
     equality_constraints = [
-        #np.linalg.norm(f_centripetal) - np.linalg.norm(f_drag + f_friction), # |f_centripetal| = |f_drag + f_friction|
-        #np.linalg.norm(f_gravity) - np.linalg.norm(f_neutral + f_centripetal) # |f_gravity| = |f_neutral + f_centripetal|
+        #np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal) # |f_centripetal| >= |f_centrifugal|
+        #np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_drag) + np.array(f_friction)), # |f_centripetal| = |f_drag + f_friction|
+        #np.linalg.norm(f_gravity) - np.linalg.norm(np.array(f_neutral) + np.array(f_centripetal)) # |f_gravity| = |f_neutral + f_centripetal|
     ]
-    print(f_centripetal, " ", f_drag, " ", f_friction)
 
     return inequality_constraints, equality_constraints
 
@@ -54,22 +54,32 @@ def weighting(x):
 
 def findStartingValue(bounds):
     print("\tFinding starting value", end='')
-    for i in CONSTRAINTS["turnIncline"]:
-        for j in CONSTRAINTS["mass"]:
-            for k in CONSTRAINTS["staticFriction"]:
-                for l in CONSTRAINTS["cdValue"]:
-                    for m in CONSTRAINTS["frontArea"]:
+
+    turn_incline_range = np.arange(CONSTRAINTS["turnIncline"][0], CONSTRAINTS["turnIncline"][1], 0.1)
+    mass_range = np.arange(CONSTRAINTS["mass"][0], CONSTRAINTS["mass"][1], 0.1)
+    static_friction_range = np.arange(CONSTRAINTS["staticFriction"][0], CONSTRAINTS["staticFriction"][1], 0.1)
+    cd_value_range = np.arange(CONSTRAINTS["cdValue"][0], CONSTRAINTS["cdValue"][1], 0.1)
+    front_area_range = np.arange(CONSTRAINTS["frontArea"][0], CONSTRAINTS["frontArea"][1], 0.1)
+
+    # iterate through all combinations of constraint values
+    for i in turn_incline_range:
+        for j in mass_range:
+            for k in static_friction_range:
+                for l in cd_value_range:
+                    for m in front_area_range:
                         x0 = [i, j, k, l, m]
-                        cons = constraints(x0)
-                        result = minimize(weighting, x0, method="SLSQP", bounds=bounds, constraints=cons)
+                        cons = constraints(x0) # construct constraints for the optimizer
+                        result = minimize(weighting, x0, method="SLSQP", bounds=bounds, constraints=cons) # perform optimization
+
                         if result.success:
                             print("\n\tStarting value found.")
-                            return x0
+                            return x0  # return the feasible starting value
                         else:
                             print('.', end='')
-        print(f"\n\t{result.message}")
-        print("Optimization failed.")
-        exit(-1)
+
+    # If no feasible starting value is found
+    print("\n\tOptimization failed. No feasible starting value found.")
+    exit(-1)
 
 
 def constraints(x):
@@ -83,11 +93,6 @@ def constraints(x):
 
 def optimize():
     print("Optimizing values...")
-
-    vector = [0, 1, 0]
-    print(np.linalg.norm(vector), " ", vector)
-    vector = test(np.linalg.norm(vector))
-    print(np.linalg.norm(vector), " ", vector)
 
     # create bounds
     bounds = [
