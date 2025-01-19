@@ -25,21 +25,20 @@ def ineq_constraints(x):
 
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
     ineq_constraints = [
-        #turnIncline - (CONSTRAINTS["turnIncline"][0]), # turnIncline >= lower bound
-        #(CONSTRAINTS["turnIncline"][1]) - turnIncline, # turnIncline <= upper bound
-        #frontArea - (CONSTRAINTS["frontArea"][0]), # frontArea >= lower bound
-        #(CONSTRAINTS["frontArea"][1]) - frontArea, # frontArea <= upper bound
-        #cdValue - (CONSTRAINTS["cdValue"][0]), # cdValue >= lower bound
-        #(CONSTRAINTS["cdValue"][1]) - cdValue, # cdValue <= upper bound
-        #mass - (CONSTRAINTS["mass"][0]), # mass >= lower bound
-        #(CONSTRAINTS["mass"][1]) - mass, # mass <= upper bound
-        #staticFriction - (CONSTRAINTS["staticFriction"][0]), # staticFriction >= lower bound
-        #(CONSTRAINTS["staticFriction"][1]) - staticFriction, # staticFriction <= upper bound
-        #(np.linalg.norm(f_gravity) - np.linalg.norm(np.array(f_neutral) + np.array(f_centripetal))) ** 2 * -1, # |f_gravity| = |f_neutral + f_centripetal|
-        (np.round(np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal))) ** 2 * -1, # |f_centripetal| = |f_centrifugal|
+        turnIncline - (CONSTRAINTS["turnIncline"][0]), # turnIncline >= lower bound
+        (CONSTRAINTS["turnIncline"][1]) - turnIncline, # turnIncline <= upper bound
+        frontArea - (CONSTRAINTS["frontArea"][0]), # frontArea >= lower bound
+        (CONSTRAINTS["frontArea"][1]) - frontArea, # frontArea <= upper bound
+        cdValue - (CONSTRAINTS["cdValue"][0]), # cdValue >= lower bound
+        (CONSTRAINTS["cdValue"][1]) - cdValue, # cdValue <= upper bound
+        mass - (CONSTRAINTS["mass"][0]), # mass >= lower bound
+        (CONSTRAINTS["mass"][1]) - mass, # mass <= upper bound
+        staticFriction - (CONSTRAINTS["staticFriction"][0]), # staticFriction >= lower bound
+        (CONSTRAINTS["staticFriction"][1]) - staticFriction, # staticFriction <= upper bound
+        (np.linalg.norm(f_gravity) - np.linalg.norm(np.array(f_neutral) + np.array(f_centripetal))) ** 2 * -1, # |f_gravity| = |f_neutral + f_centripetal|
+        np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal), # |f_centripetal| >= |f_centrifugal|
         #np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_drag) + np.array(f_friction)) # |f_centripetal| = |f_drag + f_friction|
     ]
-    print(f_centripetal, "   ", f_centripetal2)
     return ineq_constraints
 
 

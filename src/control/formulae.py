@@ -8,12 +8,15 @@ def init_f_gravity(mass, gravityAcceleration):
 
 def init_f_neutral(turnIncline, f_gravity):
     # points towards the road
-    return np.array(transform_vector([0, -np.linalg.norm(f_gravity) / np.cos(turnIncline), 0], 0, 0, turnIncline))
+    vector = np.array(transform_vector(
+        [0, (-1) * (np.linalg.norm(f_gravity) / np.cos(np.radians(turnIncline))), 0],
+        0, 0, turnIncline))
+    return vector
 
 
 def init_f_friction(f_neutral, staticFriction, turnIncline):  # parallel to the ground (not road)
     # vector points towards the curve (left of the car)
-    return np.array([-np.linalg.norm(f_neutral) * staticFriction * np.cos(turnIncline), 0, 0])
+    return np.array([-np.linalg.norm(f_neutral) * staticFriction * np.cos(np.radians(turnIncline)), 0, 0])
 
 
 def init_f_centripetal1(mass, velocity, radius):  # parallel to the ground (not road)
@@ -43,7 +46,7 @@ def init_new_f_centrifugal(f_velocity, f_new_velocity):
 
 
 def get_radius(velocity, gravityAcceleration, turnIncline):
-    return (velocity ** 2 / (gravityAcceleration * np.tan(turnIncline)))
+    return (velocity ** 2 / (gravityAcceleration * np.tan(np.radians(turnIncline))))
 
 
 def rotation_matrix(pitch, yaw, roll):  # pitch = x, yaw = y, roll = z (clockwise)
