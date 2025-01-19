@@ -1,6 +1,39 @@
 import numpy as np
 
 
+def init_vectors(turnIncline, mass, staticFriction, cdValue, frontArea, airDensity, velocity, turnAngle,
+                 gravityAcceleration):
+    f_drag = init_f_drag(airDensity, cdValue, frontArea, velocity)
+    f_velocity = init_f_velocity(f_drag)
+    f_new_velocity = init_new_f_velocity(f_velocity, turnAngle, turnIncline)
+    f_centrifugal = init_f_centrifugal(f_velocity, f_new_velocity)
+    f_gravity = init_f_gravity(mass, gravityAcceleration)
+    f_neutral = init_f_neutral(turnIncline, f_gravity)
+    f_static_friction = init_f_friction(f_gravity, f_neutral, staticFriction, f_centrifugal)
+    f_centripetal = init_f_centripetal(f_gravity, f_centrifugal, f_static_friction)
+
+    return f_drag, f_velocity, f_new_velocity, f_centrifugal, f_gravity, f_neutral, f_static_friction, f_centripetal
+
+
+def init_f_drag(airDensity, cdValue, frontArea, velocity):
+    # vector points towards the back of the car
+    return [0, 0, 0.5 * airDensity * cdValue * frontArea * velocity ** 2]
+
+
+def init_f_velocity(f_drag):
+    return transform_vector(f_drag, 0, 180, 0)
+
+
+def init_new_f_velocity(f_velocity, turnAngle, turnIncline):
+    f_new_velocity = transform_vector(f_velocity, 0, turnAngle, 0)
+    f_new_velocity = transform_vector(f_new_velocity, 0, 0, turnIncline)
+    return f_new_velocity
+
+
+def init_f_centrifugal(f_velocity, f_new_velocity):
+    return (np.array(f_velocity) - np.array(f_new_velocity))
+
+
 def init_f_gravity(mass, gravityAcceleration):
     # vector points always down
     return np.array([0, -1 * mass * gravityAcceleration, 0])
@@ -14,39 +47,25 @@ def init_f_neutral(turnIncline, f_gravity):
     return vector
 
 
-def init_f_friction(f_neutral, staticFriction, turnIncline):  # parallel to the ground (not road)
-    # vector points towards the curve (left of the car)
-    return np.array([-np.linalg.norm(f_neutral) * staticFriction * np.cos(np.radians(turnIncline)), 0, 0])
+def init_f_friction(f_gravity, f_neutral, staticFriction, f_centrifugal):  # parallel to the ground (not road)
+    direction1, direction2 = compute_vector_direction(f_gravity, np.linalg.norm(f_neutral * staticFriction),
+                                                      f_centrifugal, f_centrifugal)
+    f_friction1 = direction1 * f_neutral * staticFriction
+    f_friction2 = direction2 * f_neutral * staticFriction
+
+    if (np.linalg.norm(np.array(f_gravity) + np.array(f_friction1)) - np.linalg.norm(f_centrifugal)) == 0:
+        return f_friction1
+    else:
+        return f_friction2
 
 
-def init_f_centripetal_gravity(f_gravity, f_neutral):  # parallel to the ground (not road)
-    # vector points towards the curve (left of the car)
-    return (np.array(f_gravity) - np.array(f_neutral))
+def init_f_centripetal(f_gravity, f_centrifugal, f_static_friction):
+    print(f_static_friction)
+    unit_vector_centrifugal = -1 * f_centrifugal / np.linalg.norm(f_centrifugal)
 
+    f_centripetal = unit_vector_centrifugal * (np.linalg.norm(np.array(f_static_friction) + np.array(f_gravity)))
 
-def init_f_centripetal_curve(mass, velocity, radius):
-    return np.array([-1 * mass * velocity ** 2 / radius, 0, 0])
-
-
-def init_f_drag(airDensity, cdValue, frontArea, velocity):
-    # vector points towards the back of the car
-    return np.array([0, 0, 0.5 * airDensity * cdValue * frontArea * velocity ** 2])
-
-
-def init_f_velocity(f_drag):
-    return np.array(transform_vector(f_drag, 0, 180, 0))
-
-
-def init_new_f_velocity(f_velocity, turnAngle):
-    return np.array(transform_vector(f_velocity, 0, turnAngle, 0))
-
-
-def init_new_f_centrifugal(f_velocity, f_new_velocity):
-    return (np.array(f_velocity) - np.array(f_new_velocity))
-
-
-def get_radius(velocity, gravityAcceleration, turnIncline):
-    return (velocity ** 2 / (gravityAcceleration * np.tan(np.radians(turnIncline))))
+    return f_centripetal
 
 
 def rotation_matrix(pitch, yaw, roll):  # pitch = x, yaw = y, roll = z (clockwise)
@@ -75,6 +94,48 @@ def rotation_matrix(pitch, yaw, roll):  # pitch = x, yaw = y, roll = z (clockwis
     # Combined rotation matrix
     return R_z @ R_y @ R_x
 
+
 def transform_vector(vector, pitch, yaw, roll):  # pitch = x, yaw = y, roll = z (clockwise)
     R = rotation_matrix(pitch, yaw, roll)
     return R @ vector
+
+
+def compute_vector_direction(start_point, vector_length, line_point, line_direction):
+    """
+    Berechnet die Richtung eines Vektors mit gegebener Länge, sodass der Endpunkt des Vektors
+    eine bestimmte Gerade trifft.
+
+    :param start_point: np.array, der Startpunkt des Vektors (3D)
+    :param vector_length: float, die Länge des Vektors
+    :param line_point: np.array, ein Punkt auf der Geraden (3D)
+    :param line_direction: np.array, der Richtungsvektor der Geraden (3D)
+    :return: np.array, die Richtung des Vektors (Einheitsvektor) oder None, falls keine Lösung existiert
+    """
+    # Richtungsvektor der Geraden normalisieren
+    line_direction = line_direction / np.linalg.norm(line_direction)
+
+    # Relativer Vektor zwischen Startpunkt und Punkt auf der Geraden
+    relative_vector = line_point - start_point
+
+    # Quadratische Gleichung lösen: ||t * line_direction - relative_vector||^2 = vector_length^2
+    a = np.dot(line_direction, line_direction)
+    b = -2 * np.dot(line_direction, relative_vector)
+    c = np.dot(relative_vector, relative_vector) - vector_length ** 2
+
+    # Diskriminante berechnen
+    discriminant = b ** 2 - 4 * a * c
+
+    # t-Werte berechnen (es können zwei Lösungen existieren)
+    t1 = (-b + np.sqrt(discriminant)) / (2 * a)
+    t2 = (-b - np.sqrt(discriminant)) / (2 * a)
+
+    # Endpunkte auf der Geraden für beide t-Werte berechnen
+    intersection_1 = line_point + t1 * line_direction
+    intersection_2 = line_point + t2 * line_direction
+
+    # Die Richtung des Vektors berechnen
+    direction_1 = (intersection_1 - start_point) / vector_length
+    direction_2 = (intersection_2 - start_point) / vector_length
+
+    # Rückgabe beider möglichen Richtungen
+    return direction_1, direction_2
