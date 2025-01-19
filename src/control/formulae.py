@@ -8,11 +8,13 @@ def init_vectors(turnIncline, mass, staticFriction, cdValue, frontArea, airDensi
     f_new_velocity = init_new_f_velocity(f_velocity, turnAngle, turnIncline)
     f_centrifugal = init_f_centrifugal(f_velocity, f_new_velocity)
     f_gravity = init_f_gravity(mass, gravityAcceleration)
+    f_gravity_parallel = init_f_gravity_parallel(f_gravity, turnIncline)
     f_neutral = init_f_neutral(turnIncline, f_gravity)
+    f_road = init_f_road(f_neutral)
     f_static_friction = init_f_friction(f_gravity, f_neutral, staticFriction, f_centrifugal)
     f_centripetal = init_f_centripetal(f_gravity, f_centrifugal, f_static_friction)
 
-    return f_drag, f_velocity, f_new_velocity, f_centrifugal, f_gravity, f_neutral, f_static_friction, f_centripetal
+    return f_drag, f_velocity, f_new_velocity, f_centrifugal, f_gravity, f_gravity_parallel, f_neutral, f_road, f_static_friction, f_centripetal
 
 
 def init_f_drag(airDensity, cdValue, frontArea, velocity):
@@ -39,12 +41,21 @@ def init_f_gravity(mass, gravityAcceleration):
     return np.array([0, -1 * mass * gravityAcceleration, 0])
 
 
+def init_f_gravity_parallel(f_gravity, turnIncline):
+    return transform_vector(
+        [0, (-1) * np.linalg.norm(f_gravity) / np.sin(turnIncline), 0],
+        0, 0, turnIncline - 90)
+
+
 def init_f_neutral(turnIncline, f_gravity):
     # points towards the road
-    vector = np.array(transform_vector(
+    return np.array(transform_vector(
         [0, (-1) * (np.linalg.norm(f_gravity) / np.cos(np.radians(turnIncline))), 0],
         0, 0, turnIncline))
-    return vector
+
+def init_f_road(f_neutral):
+    # points away from the road
+    return transform_vector(f_neutral, 0, 0, 180)
 
 
 def init_f_friction(f_gravity, f_neutral, staticFriction, f_centrifugal):  # parallel to the ground (not road)

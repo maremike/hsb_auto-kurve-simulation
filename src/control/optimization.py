@@ -11,21 +11,33 @@ from resources.constants_simulation import turnAngle, velocity, gravityAccelerat
 def ineq_constraints(x):
     turnIncline, mass, staticFriction, cdValue, frontArea = x
 
-    f_drag, f_velocity, f_new_velocity, f_centrifugal, f_gravity, f_neutral, f_static_friction, f_centripetal = (
+    (f_drag, f_velocity, f_new_velocity, f_centrifugal, f_gravity, f_gravity_parallel, f_neutral, f_road,
+     f_static_friction, f_centripetal) = (
         init_vectors(turnIncline, mass, staticFriction, cdValue, frontArea, airDensity, velocity, turnAngle,
                      gravityAcceleration)
     )
-
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
     ineq_constraints = [
-        # |f_gravity| = |f_neutral + f_centripetal|
-        #np.round(np.linalg.norm(f_gravity) - np.linalg.norm(np.array(f_neutral) + np.array(f_centripetal))) ** 2 * -1,
-        # |f_centripetal_curve| = |f_centripetal_gravity|
-        # np.round(np.linalg.norm(f_centripetal_curve) - np.linalg.norm(f_centripetal_gravity)) **2 * -1,
-        # |f_centripetal| = |f_centrifugal|
-        np.round(np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal)) ** 2 * -1
-        # |f_centripetal| = |f_drag + f_friction|
-        # np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_drag) + np.array(f_friction))
+        # |f_centripetal| = |f_gravity_parallel + f_static_friction|
+        #np.round(np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_gravity_parallel) + np.array(f_static_friction))) ** 2 * (-1)
+
+        # f_centrifugal = -f_centripetal | |f_centrifugal| = |f_centripetal|
+        np.round(np.linalg.norm(np.array(f_centrifugal) + np.array(f_centripetal))) ** 2 * (-1),
+
+        # f_road = -f_neutral
+        np.round(np.linalg.norm(np.array(f_road) + np.array(f_neutral))) ** 2 * (-1),
+
+        # |f_velocity| = |f_new_velocity|
+        np.round(np.linalg.norm(f_velocity) - np.linalg.norm(f_new_velocity)) ** 2 * (-1),
+
+        # f_velocity = -f_drag
+        np.round(np.linalg.norm(np.array(f_velocity) + np.array(f_drag))) ** 2 * (-1),
+
+        # f_velocity = f_new_velocity + f_centrifugal
+        np.round(np.array(f_velocity) - np.array(f_new_velocity) - np.array(f_centrifugal)) ** 2 * (-1)
+
+        # f_gravity = f_neutral + f_gravity_parallel
+        #np.round(np.array(f_gravity) - np.array(f_neutral) - np.array(f_gravity_parallel)) ** 2 * (-1)
     ]
     return ineq_constraints
 

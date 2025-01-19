@@ -1,6 +1,6 @@
 from mpmath import lu_solve
 
-losening = 2
+losening = 1.3
 
 CONSTRAINTS = {
     # mass: 800-3000 [kg]
