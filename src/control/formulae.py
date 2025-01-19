@@ -3,48 +3,47 @@ import numpy as np
 
 def init_f_gravity(mass, gravityAcceleration):
     # vector points always down
-    return [0, -1 * mass * gravityAcceleration, 0]
+    return np.array([0, -1 * mass * gravityAcceleration, 0])
 
 
 def init_f_neutral(turnIncline, f_gravity):
     # points towards the road
-    return transform_vector([0, -np.cos(turnIncline) * np.linalg.norm(f_gravity), 0],
-                                 0, 0, turnIncline)
+    return np.array(transform_vector([0, -np.linalg.norm(f_gravity) / np.cos(turnIncline), 0], 0, 0, turnIncline))
 
 
 def init_f_friction(f_neutral, staticFriction, turnIncline):  # parallel to the ground (not road)
     # vector points towards the curve (left of the car)
-    return [-np.linalg.norm(f_neutral) * staticFriction * np.cos(turnIncline), 0, 0]
+    return np.array([-np.linalg.norm(f_neutral) * staticFriction * np.cos(turnIncline), 0, 0])
 
 
-def init_f_centripetal(mass, velocity, radius, f_friction):  # parallel to the ground (not road)
+def init_f_centripetal1(mass, velocity, radius):  # parallel to the ground (not road)
     # vector points towards the curve (left of the car)
-    return [-mass * velocity ** 2 / radius, 0, 0]
+    return np.array([-1 * mass * velocity ** 2 / radius, 0, 0])
+
+def init_f_centripetal2(f_gravity, f_neutral):  # parallel to the ground (not road)
+    # vector points towards the curve (left of the car)
+    return (np.array(f_gravity) - np.array(f_neutral))
 
 
 def init_f_drag(airDensity, cdValue, frontArea, velocity):
     # vector points towards the back of the car
-    return [0, 0, 0.5 * airDensity * cdValue * frontArea * velocity ** 2]
+    return np.array([0, 0, 0.5 * airDensity * cdValue * frontArea * velocity ** 2])
 
 
 def init_f_velocity(f_drag):
-    return transform_vector(f_drag, 0, 180, 0)
+    return np.array(transform_vector(f_drag, 0, 180, 0))
 
 
 def init_new_f_velocity(f_velocity, turnAngle):
-    return transform_vector(f_velocity, 0, turnAngle, 0)
+    return np.array(transform_vector(f_velocity, 0, turnAngle, 0))
 
 
 def init_new_f_centrifugal(f_velocity, f_new_velocity):
-    return np.array(f_new_velocity) - np.array(f_velocity)
+    return (np.array(f_new_velocity) - np.array(f_velocity))
 
 
 def get_radius(velocity, gravityAcceleration, turnIncline):
     return (velocity ** 2 / (gravityAcceleration * np.tan(turnIncline)))
-
-
-def test(vector):
-    return transform_vector(vector, 0, 90, 90)
 
 
 def rotation_matrix(pitch, yaw, roll):  # pitch = x, yaw = y, roll = z (clockwise)

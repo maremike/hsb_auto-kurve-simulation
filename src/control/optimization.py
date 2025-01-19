@@ -3,46 +3,66 @@ from doctest import testfile
 import numpy as np
 from scipy.optimize import minimize
 from resources.constraints import CONSTRAINTS
-from control.formulae import init_f_drag, init_f_friction, init_f_centripetal, get_radius, init_f_gravity, \
+from control.formulae import init_f_drag, init_f_friction, init_f_gravity, \
     init_f_neutral, \
-    init_f_velocity, init_new_f_velocity, init_new_f_centrifugal
+    init_f_velocity, init_new_f_velocity, init_new_f_centrifugal, init_f_centripetal2, init_f_centripetal1, get_radius
 from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, airDensity
 
 
-def conditions(x, turnAngle, velocity, airDensity, gravityAcceleration):
-    turnIncline, mass, staticFriction, cdValue, frontArea = x  # todo: more variables (center of mass, wheel distance)
+def ineq_constraints(x):
+    turnIncline, mass, staticFriction, cdValue, frontArea = x
 
     f_drag = init_f_drag(airDensity, cdValue, frontArea, velocity)
     f_gravity = init_f_gravity(mass, gravityAcceleration)
     f_neutral = init_f_neutral(turnIncline, f_gravity)
     f_friction = init_f_friction(f_neutral, staticFriction, turnIncline)
-    f_centripetal = init_f_centripetal(mass, velocity, get_radius(velocity, gravityAcceleration, turnIncline),
-                                      f_friction)
+    radius = get_radius(velocity, gravityAcceleration, turnIncline)
+    f_centripetal = init_f_centripetal1(mass, velocity, radius)
+    f_centripetal2 = init_f_centripetal2(f_gravity, f_neutral)
     f_velocity = init_f_velocity(f_drag)
     f_new_velocity = init_new_f_velocity(f_velocity, turnAngle)
     f_centrifugal = init_new_f_centrifugal(f_velocity, f_new_velocity)
 
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
-    inequality_constraints = [
-        turnIncline - (CONSTRAINTS["turnIncline"][0]), # turnIncline >= lower bound
-        (CONSTRAINTS["turnIncline"][1]) - turnIncline, # turnIncline <= upper bound
-        frontArea - (CONSTRAINTS["frontArea"][0]), # frontArea >= lower bound
-        (CONSTRAINTS["frontArea"][1]) - frontArea, # frontArea <= upper bound
-        cdValue - (CONSTRAINTS["cdValue"][0]), # cdValue >= lower bound
-        (CONSTRAINTS["cdValue"][1]) - cdValue, # cdValue <= upper bound
-        mass - (CONSTRAINTS["mass"][0]), # mass >= lower bound
-        (CONSTRAINTS["mass"][1]) - mass, # mass <= upper bound
-        staticFriction - (CONSTRAINTS["staticFriction"][0]), # staticFriction >= lower bound
-        (CONSTRAINTS["staticFriction"][1]) - staticFriction # staticFriction <= upper bound
+    ineq_constraints = [
+        #turnIncline - (CONSTRAINTS["turnIncline"][0]), # turnIncline >= lower bound
+        #(CONSTRAINTS["turnIncline"][1]) - turnIncline, # turnIncline <= upper bound
+        #frontArea - (CONSTRAINTS["frontArea"][0]), # frontArea >= lower bound
+        #(CONSTRAINTS["frontArea"][1]) - frontArea, # frontArea <= upper bound
+        #cdValue - (CONSTRAINTS["cdValue"][0]), # cdValue >= lower bound
+        #(CONSTRAINTS["cdValue"][1]) - cdValue, # cdValue <= upper bound
+        #mass - (CONSTRAINTS["mass"][0]), # mass >= lower bound
+        #(CONSTRAINTS["mass"][1]) - mass, # mass <= upper bound
+        #staticFriction - (CONSTRAINTS["staticFriction"][0]), # staticFriction >= lower bound
+        #(CONSTRAINTS["staticFriction"][1]) - staticFriction, # staticFriction <= upper bound
+        #(np.linalg.norm(f_gravity) - np.linalg.norm(np.array(f_neutral) + np.array(f_centripetal))) ** 2 * -1, # |f_gravity| = |f_neutral + f_centripetal|
+        (np.round(np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal))) ** 2 * -1, # |f_centripetal| = |f_centrifugal|
+        #np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_drag) + np.array(f_friction)) # |f_centripetal| = |f_drag + f_friction|
     ]
+    print(f_centripetal, "   ", f_centripetal2)
+    return ineq_constraints
+
+
+def eq_constraints(x):
+    turnIncline, mass, staticFriction, cdValue, frontArea = x
+
+    f_drag = init_f_drag(airDensity, cdValue, frontArea, velocity)
+    f_gravity = init_f_gravity(mass, gravityAcceleration)
+    f_neutral = init_f_neutral(turnIncline, f_gravity)
+    f_friction = init_f_friction(f_neutral, staticFriction, turnIncline)
+    f_centripetal = init_f_centripetal2(f_gravity, f_neutral)
+    f_velocity = init_f_velocity(f_drag)
+    f_new_velocity = init_new_f_velocity(f_velocity, turnAngle)
+    f_centrifugal = init_new_f_centrifugal(f_velocity, f_new_velocity)
+
     # equality constraints: h(x) = 0 (conditions must be equal to 0 to succeed)
-    equality_constraints = [
-        #np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal) # |f_centripetal| >= |f_centrifugal|
-        #np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_drag) + np.array(f_friction)), # |f_centripetal| = |f_drag + f_friction|
-        #np.linalg.norm(f_gravity) - np.linalg.norm(np.array(f_neutral) + np.array(f_centripetal)) # |f_gravity| = |f_neutral + f_centripetal|
+    eq_constraints = [
+        np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal), # |f_centripetal| >= |f_centrifugal|
+        np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_drag) + np.array(f_friction)), # |f_centripetal| = |f_drag + f_friction|
+        np.linalg.norm(f_gravity) - np.linalg.norm(np.array(f_neutral) + np.array(f_centripetal)) # |f_gravity| = |f_neutral + f_centripetal|
     ]
 
-    return inequality_constraints, equality_constraints
+    return eq_constraints
 
 
 def weighting(x):
@@ -83,12 +103,12 @@ def findStartingValue(bounds):
 
 
 def constraints(x):
-    g, h = conditions(x, turnAngle, velocity, airDensity, gravityAcceleration) # retrieve constraints
+    g = ineq_constraints(x) # retrieve constraints
 
-    constraints = [{'type': 'ineq', 'fun': lambda x, g_i=g_i: g_i} for g_i in g] # inequality constraints: g(x) >= 0
-    constraints.extend({'type': 'eq', 'fun': lambda x, h_i=h_i: h_i} for h_i in h) # equality constraints: h(x) = 0
+    cons= [{'type': 'ineq', 'fun': lambda x, g_i=g_i: g_i} for g_i in g] # inequality constraints: g(x) >= 0
+    #constraints.extend({'type': 'eq', 'fun': lambda x, h_i=h_i: h_i} for h_i in h) # equality constraints: h(x) = 0
 
-    return constraints
+    return cons
 
 
 def optimize():
