@@ -19,13 +19,13 @@ def init_f_friction(f_neutral, staticFriction, turnIncline):  # parallel to the 
     return np.array([-np.linalg.norm(f_neutral) * staticFriction * np.cos(np.radians(turnIncline)), 0, 0])
 
 
-def init_f_centripetal1(mass, velocity, radius):  # parallel to the ground (not road)
-    # vector points towards the curve (left of the car)
-    return np.array([-1 * mass * velocity ** 2 / radius, 0, 0])
-
-def init_f_centripetal2(f_gravity, f_neutral):  # parallel to the ground (not road)
+def init_f_centripetal_gravity(f_gravity, f_neutral):  # parallel to the ground (not road)
     # vector points towards the curve (left of the car)
     return (np.array(f_gravity) - np.array(f_neutral))
+
+
+def init_f_centripetal_curve(mass, velocity, radius):
+    return np.array([-1 * mass * velocity ** 2 / radius, 0, 0])
 
 
 def init_f_drag(airDensity, cdValue, frontArea, velocity):
@@ -42,7 +42,7 @@ def init_new_f_velocity(f_velocity, turnAngle):
 
 
 def init_new_f_centrifugal(f_velocity, f_new_velocity):
-    return (np.array(f_new_velocity) - np.array(f_velocity))
+    return (np.array(f_velocity) - np.array(f_new_velocity))
 
 
 def get_radius(velocity, gravityAcceleration, turnIncline):

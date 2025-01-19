@@ -1,11 +1,13 @@
 from doctest import testfile
 
 import numpy as np
+from scipy.stats import qmc
 from scipy.optimize import minimize
 from resources.constraints import CONSTRAINTS
 from control.formulae import init_f_drag, init_f_friction, init_f_gravity, \
     init_f_neutral, \
-    init_f_velocity, init_new_f_velocity, init_new_f_centrifugal, init_f_centripetal2, init_f_centripetal1, get_radius
+    init_f_velocity, init_new_f_velocity, init_new_f_centrifugal, get_radius, \
+    init_f_centripetal_gravity, init_f_centripetal_curve
 from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, airDensity
 
 
@@ -17,97 +19,59 @@ def ineq_constraints(x):
     f_neutral = init_f_neutral(turnIncline, f_gravity)
     f_friction = init_f_friction(f_neutral, staticFriction, turnIncline)
     radius = get_radius(velocity, gravityAcceleration, turnIncline)
-    f_centripetal = init_f_centripetal1(mass, velocity, radius)
-    f_centripetal2 = init_f_centripetal2(f_gravity, f_neutral)
+    f_centripetal_gravity = init_f_centripetal_gravity(f_gravity, f_neutral)
+    f_centripetal_curve = init_f_centripetal_curve(mass, velocity, radius)
+    f_centripetal = f_centripetal_gravity
     f_velocity = init_f_velocity(f_drag)
     f_new_velocity = init_new_f_velocity(f_velocity, turnAngle)
     f_centrifugal = init_new_f_centrifugal(f_velocity, f_new_velocity)
 
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
     ineq_constraints = [
-        turnIncline - (CONSTRAINTS["turnIncline"][0]), # turnIncline >= lower bound
-        (CONSTRAINTS["turnIncline"][1]) - turnIncline, # turnIncline <= upper bound
-        frontArea - (CONSTRAINTS["frontArea"][0]), # frontArea >= lower bound
-        (CONSTRAINTS["frontArea"][1]) - frontArea, # frontArea <= upper bound
-        cdValue - (CONSTRAINTS["cdValue"][0]), # cdValue >= lower bound
-        (CONSTRAINTS["cdValue"][1]) - cdValue, # cdValue <= upper bound
-        mass - (CONSTRAINTS["mass"][0]), # mass >= lower bound
-        (CONSTRAINTS["mass"][1]) - mass, # mass <= upper bound
-        staticFriction - (CONSTRAINTS["staticFriction"][0]), # staticFriction >= lower bound
-        (CONSTRAINTS["staticFriction"][1]) - staticFriction, # staticFriction <= upper bound
-        (np.linalg.norm(f_gravity) - np.linalg.norm(np.array(f_neutral) + np.array(f_centripetal))) ** 2 * -1, # |f_gravity| = |f_neutral + f_centripetal|
-        np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal), # |f_centripetal| >= |f_centrifugal|
-        #np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_drag) + np.array(f_friction)) # |f_centripetal| = |f_drag + f_friction|
+        # |f_gravity| = |f_neutral + f_centripetal_gravity|
+        np.round(np.linalg.norm(f_gravity) - np.linalg.norm(np.array(f_neutral) + np.array(f_centripetal_gravity))) ** 2 * -1,
+        # |f_centripetal_curve| = |f_centripetal_gravity|
+        np.round(np.linalg.norm(f_centripetal_curve) - np.linalg.norm(f_centripetal_gravity)) **2 * -1,
+        # |f_centripetal| = |f_centrifugal|
+        np.round(np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal)) ** 2 * -1
+        # |f_centripetal| = |f_drag + f_friction|
+        #np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_drag) + np.array(f_friction))
     ]
+    #print(f_centripetal, "   ", f_centrifugal, "   ", (np.array(f_centripetal) - np.array(f_centrifugal)))
     return ineq_constraints
 
+def constraints(x):
+    g = ineq_constraints(x) # retrieve constraints
+    cons = [{'type': 'ineq', 'fun': lambda x, g_i=g_i: g_i} for g_i in g] # inequality constraints: g(x) >= 0
+    return cons
 
-def eq_constraints(x):
-    turnIncline, mass, staticFriction, cdValue, frontArea = x
-
-    f_drag = init_f_drag(airDensity, cdValue, frontArea, velocity)
-    f_gravity = init_f_gravity(mass, gravityAcceleration)
-    f_neutral = init_f_neutral(turnIncline, f_gravity)
-    f_friction = init_f_friction(f_neutral, staticFriction, turnIncline)
-    f_centripetal = init_f_centripetal2(f_gravity, f_neutral)
-    f_velocity = init_f_velocity(f_drag)
-    f_new_velocity = init_new_f_velocity(f_velocity, turnAngle)
-    f_centrifugal = init_new_f_centrifugal(f_velocity, f_new_velocity)
-
-    # equality constraints: h(x) = 0 (conditions must be equal to 0 to succeed)
-    eq_constraints = [
-        np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal), # |f_centripetal| >= |f_centrifugal|
-        np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_drag) + np.array(f_friction)), # |f_centripetal| = |f_drag + f_friction|
-        np.linalg.norm(f_gravity) - np.linalg.norm(np.array(f_neutral) + np.array(f_centripetal)) # |f_gravity| = |f_neutral + f_centripetal|
-    ]
-
-    return eq_constraints
-
-
-def weighting(x):
-    turnIncline, mass, staticFriction, cdValue, frontArea = x
-
-    w1, w2, w3, w4 = 1, 1, 1, 1  # weight
-    return w1 * mass + w2 * cdValue + w3 * frontArea + w4 * staticFriction  # following values should be as low as possible
-
+def objective(x):
+    return 0
 
 def findStartingValue(bounds):
     print("\tFinding starting value", end='')
 
-    turn_incline_range = np.arange(CONSTRAINTS["turnIncline"][0], CONSTRAINTS["turnIncline"][1], 0.1)
-    mass_range = np.arange(CONSTRAINTS["mass"][0], CONSTRAINTS["mass"][1], 0.1)
-    static_friction_range = np.arange(CONSTRAINTS["staticFriction"][0], CONSTRAINTS["staticFriction"][1], 0.1)
-    cd_value_range = np.arange(CONSTRAINTS["cdValue"][0], CONSTRAINTS["cdValue"][1], 0.1)
-    front_area_range = np.arange(CONSTRAINTS["frontArea"][0], CONSTRAINTS["frontArea"][1], 0.1)
+    # using Latin Hypercube Sampling to sample points from the parameter space
+    sampler = qmc.LatinHypercube(d=5)  # d=5 for 5 parameters
+    num_samples=99999
+    sample = sampler.random(n=num_samples)
+    lower_bounds = [b[0] for b in bounds]
+    upper_bounds = [b[1] for b in bounds]
+    assert len(lower_bounds) == len(upper_bounds) == 5, "Bounds should be defined for 5 parameters."
+    assert all(lb < ub for lb, ub in zip(lower_bounds, upper_bounds)), "Each lower bound must be less than the upper bound."
+    scaled_samples = qmc.scale(sample, lower_bounds, upper_bounds)
 
-    # iterate through all combinations of constraint values
-    for i in turn_incline_range:
-        for j in mass_range:
-            for k in static_friction_range:
-                for l in cd_value_range:
-                    for m in front_area_range:
-                        x0 = [i, j, k, l, m]
-                        cons = constraints(x0) # construct constraints for the optimizer
-                        result = minimize(weighting, x0, method="SLSQP", bounds=bounds, constraints=cons) # perform optimization
+    for x0 in scaled_samples:
+        cons = constraints(x0)  # construct constraints for the optimizer
+        result = minimize(objective, x0, method="SLSQP", bounds=bounds, constraints=cons)  # optimization
 
-                        if result.success:
-                            print("\n\tStarting value found.")
-                            return x0  # return the feasible starting value
-                        else:
-                            print('.', end='')
+        if result.success:
+            print("\n\tStarting value found.")
+            return x0  # return the feasible starting value
+        else:
+            print('.', end='')
 
-    # If no feasible starting value is found
-    print("\n\tOptimization failed. No feasible starting value found.")
-    exit(-1)
-
-
-def constraints(x):
-    g = ineq_constraints(x) # retrieve constraints
-
-    cons= [{'type': 'ineq', 'fun': lambda x, g_i=g_i: g_i} for g_i in g] # inequality constraints: g(x) >= 0
-    #constraints.extend({'type': 'eq', 'fun': lambda x, h_i=h_i: h_i} for h_i in h) # equality constraints: h(x) = 0
-
-    return cons
+    print("\n\tNo starting value found after sampling.")
 
 
 def optimize():
@@ -129,7 +93,7 @@ def optimize():
     cons = constraints(x0)
 
     # optimize with scipy minimize (SLSQP method)
-    result = minimize(weighting, x0, method="SLSQP", bounds=bounds, constraints=cons)
+    result = minimize(objective, x0, method="SLSQP", bounds=bounds, constraints=cons)
 
     if result.success:
         print(f"\t{result.message}")
