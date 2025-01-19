@@ -18,11 +18,13 @@ def ineq_constraints(x):
     )
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
     ineq_constraints = [
-        # |f_centripetal| = |f_gravity_parallel + f_static_friction|
+        # |f_centripetal| = |f_gravity_parallel + f_static_friction| TODO: FIX
         #np.round(np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_gravity_parallel) + np.array(f_static_friction))) ** 2 * (-1)
 
-        # f_centrifugal = -f_centripetal | |f_centrifugal| = |f_centripetal|
-        np.round(np.linalg.norm(np.array(f_centrifugal) + np.array(f_centripetal))) ** 2 * (-1),
+        # f_centrifugal = -f_centripetal
+        #np.round(np.linalg.norm(np.array(f_centrifugal) + np.array(f_centripetal))) ** 2 * (-1),
+        # |f_centrifugal| <= |f_centripetal|
+        np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal),
 
         # f_road = -f_neutral
         np.round(np.linalg.norm(np.array(f_road) + np.array(f_neutral))) ** 2 * (-1),
@@ -34,9 +36,9 @@ def ineq_constraints(x):
         np.round(np.linalg.norm(np.array(f_velocity) + np.array(f_drag))) ** 2 * (-1),
 
         # f_velocity = f_new_velocity + f_centrifugal
-        np.round(np.array(f_velocity) - np.array(f_new_velocity) - np.array(f_centrifugal)) ** 2 * (-1)
+        np.round(np.array(f_velocity) - np.array(f_new_velocity) - np.array(f_centrifugal)) ** 2 * (-1),
 
-        # f_gravity = f_neutral + f_gravity_parallel
+        # f_gravity = f_neutral + f_gravity_parallel TODO: FIX
         #np.round(np.array(f_gravity) - np.array(f_neutral) - np.array(f_gravity_parallel)) ** 2 * (-1)
     ]
     return ineq_constraints
@@ -102,8 +104,7 @@ def optimize():
     result = minimize(objective, x0, method="SLSQP", bounds=bounds, constraints=cons)
 
     if result.success:
-        print(f"\t{result.message}")
-        print(f"\t{result.nit} amount of iterations performed.")
+        print(f"\t{result.message}.")
 
         print("\n\tInput values:")
         print("\tTurn angle [deg]:", turnAngle)
@@ -119,6 +120,6 @@ def optimize():
 
         print("Optimization finished.")
     else:
-        print(f"\t{result.message}")
+        print(f"\t{result.message}.")
         print("Optimization failed.")
         exit(-1)
