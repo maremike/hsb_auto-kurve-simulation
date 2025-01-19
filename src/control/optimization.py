@@ -65,6 +65,7 @@ def findStartingValue(bounds):
             print('.', end='')
 
     print("\n\tNo starting value found after sampling.")
+    exit(-1)
 
 
 def optimize():

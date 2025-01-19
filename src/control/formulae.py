@@ -49,18 +49,18 @@ def init_f_neutral(turnIncline, f_gravity):
 
 def init_f_friction(f_gravity, f_neutral, staticFriction, f_centrifugal):  # parallel to the ground (not road)
     direction1, direction2 = compute_vector_direction(f_gravity, np.linalg.norm(f_neutral * staticFriction),
-                                                      f_centrifugal, f_centrifugal)
-    f_friction1 = direction1 * f_neutral * staticFriction
-    f_friction2 = direction2 * f_neutral * staticFriction
+                                                      [0, 0, 0], f_centrifugal)
+    f_friction1 = direction1 * np.linalg.norm(f_neutral * staticFriction)
+    f_friction2 = direction2 * np.linalg.norm(f_neutral * staticFriction)
 
     if (np.linalg.norm(np.array(f_gravity) + np.array(f_friction1)) - np.linalg.norm(f_centrifugal)) == 0:
         return f_friction1
-    else:
+    elif (np.linalg.norm(np.array(f_gravity) + np.array(f_friction2)) - np.linalg.norm(f_centrifugal)):
         return f_friction2
+    return [0,0,0]
 
 
 def init_f_centripetal(f_gravity, f_centrifugal, f_static_friction):
-    print(f_static_friction)
     unit_vector_centrifugal = -1 * f_centrifugal / np.linalg.norm(f_centrifugal)
 
     f_centripetal = unit_vector_centrifugal * (np.linalg.norm(np.array(f_static_friction) + np.array(f_gravity)))
