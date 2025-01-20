@@ -4,8 +4,8 @@ import numpy as np
 from scipy.stats import qmc
 from scipy.optimize import minimize
 from resources.constraints import CONSTRAINTS
-from control.formulae import init_vectors
-from resources.constants_simulation import turnAngle, velocity, gravityAcceleration
+from control.formulae import init_vectors, transform_vector
+from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, inaccuracy_tolerance
 
 
 def ineq_constraints(x):
@@ -17,47 +17,55 @@ def ineq_constraints(x):
                      gravityAcceleration)
     )
 
-    inaccuracy_tolerance = 0.1
+    # |f_static_friction| = |f_neutral| * staticFriction (alternative: |f_static_friction| <= |f_neutral| * staticFriction)
+    constraint0 = np.linalg.norm(f_static_friction) - np.linalg.norm(f_neutral) * staticFriction
+    tolerance0 = np.linalg.norm(f_static_friction) * inaccuracy_tolerance
 
-    # |f_centrifugal| <= |f_centripetal|
-    constraint0 = np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal)
-    tolerance0 = constraint0 * inaccuracy_tolerance
-
-    # |f_centripetal| = |f_gravity_parallel + f_static_friction|
+    # f_centripetal = f_gravity_parallel + f_static_friction
     constraint1 = np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_gravity_parallel) + np.array(f_static_friction))
-    tolerance1 = constraint1 * inaccuracy_tolerance
+    tolerance1 = np.linalg.norm(f_centripetal) * inaccuracy_tolerance
 
     # f_road = -f_neutral
     constraint2 = np.linalg.norm(np.array(f_road) + np.array(f_neutral))
-    tolerance2 = constraint2 * inaccuracy_tolerance
+    tolerance2 = np.linalg.norm(f_road) * inaccuracy_tolerance
 
     # |f_velocity| = |f_new_velocity|
     constraint3 = np.linalg.norm(f_velocity) - np.linalg.norm(f_new_velocity)
-    tolerance3 = constraint3 * inaccuracy_tolerance
+    tolerance3 = np.linalg.norm(f_velocity) * inaccuracy_tolerance
 
     # f_velocity = -f_drag
     constraint4 = np.linalg.norm(np.array(f_velocity) + np.array(f_drag))
-    tolerance4 = constraint4 * inaccuracy_tolerance
+    tolerance4 = np.linalg.norm(f_velocity) * inaccuracy_tolerance
 
     # f_velocity = f_new_velocity + f_centrifugal
-    constraint5 = np.array(f_velocity) - np.array(f_new_velocity) - np.array(f_centrifugal)
-    tolerance5 = constraint5 * inaccuracy_tolerance
+    constraint5 = np.linalg.norm(np.array(f_velocity) - np.array(f_new_velocity) - np.array(f_centrifugal))
+    tolerance5 = np.linalg.norm(f_velocity) * inaccuracy_tolerance
 
     # f_gravity = f_neutral + f_gravity_parallel
-    constraint6 = np.array(f_gravity) - np.array(f_neutral) - np.array(f_gravity_parallel)
-    tolerance6 = constraint6 * inaccuracy_tolerance
+    constraint6 = np.linalg.norm(np.array(f_gravity) - np.array(f_neutral) - np.array(f_gravity_parallel))
+    tolerance6 = np.linalg.norm(f_gravity) * inaccuracy_tolerance
+
+    # f_centripetal = -f_centrifugal
+    constraint7 = np.linalg.norm(np.array(f_centripetal) + np.array(f_centrifugal))
+    tolerance7 = np.linalg.norm(f_centripetal) * inaccuracy_tolerance
+
+    # f_new_velocity x and y degrees to f_velocity
+    constraint8 = np.linalg.norm(np.array(f_new_velocity) - np.array(transform_vector(np.array(transform_vector(
+        np.array(f_velocity), 0, np.radians(turnAngle), 0)), 0, 0, np.radians(turnIncline))))
+    tolerance8 = np.linalg.norm(f_new_velocity) * inaccuracy_tolerance
 
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
     ineq_constraints = [
-        constraint0 + tolerance0,
+        (np.abs(constraint0) - tolerance0) * (-1),
         (np.abs(constraint1) - tolerance1) * (-1),
         (np.abs(constraint2) - tolerance2) * (-1),
         (np.abs(constraint3) - tolerance3) * (-1),
         (np.abs(constraint4) - tolerance4) * (-1),
         (np.abs(constraint5) - tolerance5) * (-1),
-        (np.abs(constraint6) - tolerance6) * (-1)
+        (np.abs(constraint6) - tolerance6) * (-1),
+        (np.abs(constraint7) - tolerance7) * (-1),
+        (np.abs(constraint8) - tolerance8) * (-1)
     ]
-    print(f_centripetal, "  ", f_gravity_parallel, "  ", f_static_friction)
     return ineq_constraints
 
 
@@ -98,7 +106,7 @@ def findStartingValue(bounds):
             if(np.mod(tries, 200) == 0):
                 print('.', end='')
 
-    print("\n\tNo starting value found after sampling.")
+    print(f"\n\tNo starting value found after {num_samples} samples.")
     exit(-1)
 
 
@@ -130,6 +138,7 @@ def optimize():
         print("\n\tInput values:")
         print("\tTurn angle [deg]:", turnAngle)
         print("\tVelocity [m/s]:", velocity)
+        print("\tGravity acceleration [m/s²]:", gravityAcceleration)
 
         print("\n\tOutput values:")
         print("\tTurn incline [deg]:", result.x[0])
