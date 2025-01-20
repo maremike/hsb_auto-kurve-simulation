@@ -1,20 +1,20 @@
-from doctest import testfile
-
 import numpy as np
 from scipy.stats import qmc
 from scipy.optimize import minimize
+
+from control.simulation import setOptimizationResults
 from resources.constraints import CONSTRAINTS
 from control.formulae import init_vectors, transform_vector
-from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, inaccuracy_tolerance
+from resources.constants import turnAngle, velocity, gravityAcceleration, inaccuracy_tolerance, temperature, gasContent
 
 
 def ineq_constraints(x):
-    turnIncline, mass, staticFriction, cdValue, frontArea, airDensity = x
+    turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure = x
 
     (f_drag, f_velocity, f_new_velocity, f_centrifugal, f_gravity, f_gravity_parallel, f_neutral, f_road,
      f_static_friction, f_centripetal) = (
-        init_vectors(turnIncline, mass, staticFriction, cdValue, frontArea, airDensity, velocity, turnAngle,
-                     gravityAcceleration)
+        init_vectors(turnIncline, mass, cdValue, frontArea, atmosphericPressure, gasContent, temperature, velocity,
+                     turnAngle, gravityAcceleration)
     )
 
     # |f_static_friction| = |f_neutral| * staticFriction (alternative: |f_static_friction| <= |f_neutral| * staticFriction)
@@ -22,7 +22,8 @@ def ineq_constraints(x):
     tolerance0 = np.linalg.norm(f_static_friction) * inaccuracy_tolerance
 
     # f_centripetal = f_gravity_parallel + f_static_friction
-    constraint1 = np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_gravity_parallel) + np.array(f_static_friction))
+    constraint1 = np.linalg.norm(f_centripetal) - np.linalg.norm(
+        np.array(f_gravity_parallel) + np.array(f_static_friction))
     tolerance1 = np.linalg.norm(f_centripetal) * inaccuracy_tolerance
 
     # f_road = -f_neutral
@@ -103,7 +104,7 @@ def findStartingValue(bounds):
             return x0  # return the feasible starting value
         else:
             tries = tries + 1
-            if(np.mod(tries, 200) == 0):
+            if (np.mod(tries, 200) == 0):
                 print('.', end='')
 
     print(f"\n\tNo starting value found after {num_samples} samples.")
@@ -120,7 +121,7 @@ def optimize():
         (CONSTRAINTS["staticFriction"][0], CONSTRAINTS["staticFriction"][1]),
         (CONSTRAINTS["cdValue"][0], CONSTRAINTS["cdValue"][1]),
         (CONSTRAINTS["frontArea"][0], CONSTRAINTS["frontArea"][1]),
-        (CONSTRAINTS["airDensity"][0], CONSTRAINTS["airDensity"][1])
+        (CONSTRAINTS["atmosphericPressure"][0], CONSTRAINTS["atmosphericPressure"][1])
     ]
 
     # find starting value
@@ -138,7 +139,11 @@ def optimize():
         print("\n\tInput values:")
         print("\tTurn angle [deg]:", turnAngle)
         print("\tVelocity [m/s]:", velocity)
+        print("\tTemperature [celsius]:", temperature)
+
+        print("\n\tOther values:")
         print("\tGravity acceleration [m/s²]:", gravityAcceleration)
+        print("\tInaccuracy tolerance: ", inaccuracy_tolerance)
 
         print("\n\tOutput values:")
         print("\tTurn incline [deg]:", result.x[0])
@@ -146,10 +151,11 @@ def optimize():
         print("\tStatic friction:", result.x[2])
         print("\tCd-Value:", result.x[3])
         print("\tFront area [m²]:", result.x[4])
-        print("\tAir density [kg/m³]:", result.x[5])
-        print("\tCar length [m]:", result.x[5])
+        print("\tAtmospheric pressure [Pa]:", result.x[5])
 
-        print("Optimization finished.")
+        setOptimizationResults(result.x[0], result.x[1], result.x[2], result.x[3], result.x[4], result.x[5])
+
+        print(f"Optimization finished.")
     else:
         print(f"\t{result.message}.")
         print("Optimization failed.")

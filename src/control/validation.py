@@ -1,7 +1,8 @@
 import numpy as np
-from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, currentPosition
+from resources.constants import turnAngle, velocity, gravityAcceleration, currentPosition
 from resources.constraints import CONSTRAINTS
-from resources import constants_simulation
+from resources import constants
+
 
 def validate_parameters(parameters, constraints):
     """
@@ -19,13 +20,14 @@ def validate_parameters(parameters, constraints):
             ignored_count += 1  # Increment ignored parameters counter
     return errors, ignored_count
 
+
 def validate():
     print("Validating values...")
 
     # Create a dictionary of all constants to validate by dynamically getting the variables
     parameters = {name: value for name, value in globals().items()
-                  if name in dir(constants_simulation) and not name.startswith('__')
-                  and not isinstance(value, type(constants_simulation))}
+                  if name in dir(constants) and not name.startswith('__')
+                  and not isinstance(value, type(constants))}
 
     # Validate all parameters
     validation_errors, ignored_count = validate_parameters(parameters, CONSTRAINTS)
