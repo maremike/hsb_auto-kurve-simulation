@@ -5,42 +5,59 @@ from scipy.stats import qmc
 from scipy.optimize import minimize
 from resources.constraints import CONSTRAINTS
 from control.formulae import init_vectors
-from resources.constants_simulation import turnAngle, velocity, gravityAcceleration, airDensity
+from resources.constants_simulation import turnAngle, velocity, gravityAcceleration
 
 
 def ineq_constraints(x):
-    turnIncline, mass, staticFriction, cdValue, frontArea = x
+    turnIncline, mass, staticFriction, cdValue, frontArea, airDensity = x
 
     (f_drag, f_velocity, f_new_velocity, f_centrifugal, f_gravity, f_gravity_parallel, f_neutral, f_road,
      f_static_friction, f_centripetal) = (
         init_vectors(turnIncline, mass, staticFriction, cdValue, frontArea, airDensity, velocity, turnAngle,
                      gravityAcceleration)
     )
+
+    inaccuracy_tolerance = 0.1
+
+    # |f_centrifugal| <= |f_centripetal|
+    constraint0 = np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal)
+    tolerance0 = constraint0 * inaccuracy_tolerance
+
+    # |f_centripetal| = |f_gravity_parallel + f_static_friction|
+    constraint1 = np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_gravity_parallel) + np.array(f_static_friction))
+    tolerance1 = constraint1 * inaccuracy_tolerance
+
+    # f_road = -f_neutral
+    constraint2 = np.linalg.norm(np.array(f_road) + np.array(f_neutral))
+    tolerance2 = constraint2 * inaccuracy_tolerance
+
+    # |f_velocity| = |f_new_velocity|
+    constraint3 = np.linalg.norm(f_velocity) - np.linalg.norm(f_new_velocity)
+    tolerance3 = constraint3 * inaccuracy_tolerance
+
+    # f_velocity = -f_drag
+    constraint4 = np.linalg.norm(np.array(f_velocity) + np.array(f_drag))
+    tolerance4 = constraint4 * inaccuracy_tolerance
+
+    # f_velocity = f_new_velocity + f_centrifugal
+    constraint5 = np.array(f_velocity) - np.array(f_new_velocity) - np.array(f_centrifugal)
+    tolerance5 = constraint5 * inaccuracy_tolerance
+
+    # f_gravity = f_neutral + f_gravity_parallel
+    constraint6 = np.array(f_gravity) - np.array(f_neutral) - np.array(f_gravity_parallel)
+    tolerance6 = constraint6 * inaccuracy_tolerance
+
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
     ineq_constraints = [
-        # |f_centripetal| = |f_gravity_parallel + f_static_friction| TODO: FIX
-        #np.round(np.linalg.norm(f_centripetal) - np.linalg.norm(np.array(f_gravity_parallel) + np.array(f_static_friction))) ** 2 * (-1)
-
-        # f_centrifugal = -f_centripetal
-        #np.round(np.linalg.norm(np.array(f_centrifugal) + np.array(f_centripetal))) ** 2 * (-1),
-        # |f_centrifugal| <= |f_centripetal|
-        np.linalg.norm(f_centripetal) - np.linalg.norm(f_centrifugal),
-
-        # f_road = -f_neutral
-        np.round(np.linalg.norm(np.array(f_road) + np.array(f_neutral))) ** 2 * (-1),
-
-        # |f_velocity| = |f_new_velocity|
-        np.round(np.linalg.norm(f_velocity) - np.linalg.norm(f_new_velocity)) ** 2 * (-1),
-
-        # f_velocity = -f_drag
-        np.round(np.linalg.norm(np.array(f_velocity) + np.array(f_drag))) ** 2 * (-1),
-
-        # f_velocity = f_new_velocity + f_centrifugal
-        np.round(np.array(f_velocity) - np.array(f_new_velocity) - np.array(f_centrifugal)) ** 2 * (-1),
-
-        # f_gravity = f_neutral + f_gravity_parallel TODO: FIX
-        #np.round(np.array(f_gravity) - np.array(f_neutral) - np.array(f_gravity_parallel)) ** 2 * (-1)
+        constraint0 + tolerance0,
+        (np.abs(constraint1) - tolerance1) * (-1),
+        (np.abs(constraint2) - tolerance2) * (-1),
+        (np.abs(constraint3) - tolerance3) * (-1),
+        (np.abs(constraint4) - tolerance4) * (-1),
+        (np.abs(constraint5) - tolerance5) * (-1),
+        (np.abs(constraint6) - tolerance6) * (-1)
     ]
+    print(f_centripetal, "  ", f_gravity_parallel, "  ", f_static_friction)
     return ineq_constraints
 
 
@@ -58,16 +75,17 @@ def findStartingValue(bounds):
     print("\tFinding starting value", end='')
 
     # using Latin Hypercube Sampling to sample points from the parameter space
-    sampler = qmc.LatinHypercube(d=5)  # d=5 for 5 parameters
-    num_samples = 99999
+    sampler = qmc.LatinHypercube(d=6)
+    num_samples = 20000
     sample = sampler.random(n=num_samples)
     lower_bounds = [b[0] for b in bounds]
     upper_bounds = [b[1] for b in bounds]
-    assert len(lower_bounds) == len(upper_bounds) == 5, "Bounds should be defined for 5 parameters."
+    assert len(lower_bounds) == len(upper_bounds) == 6, "Bounds should be defined for 6 parameters."
     assert all(
         lb < ub for lb, ub in zip(lower_bounds, upper_bounds)), "Each lower bound must be less than the upper bound."
     scaled_samples = qmc.scale(sample, lower_bounds, upper_bounds)
 
+    tries = 1
     for x0 in scaled_samples:
         cons = constraints(x0)  # construct constraints for the optimizer
         result = minimize(objective, x0, method="SLSQP", bounds=bounds, constraints=cons)  # optimization
@@ -76,7 +94,9 @@ def findStartingValue(bounds):
             print("\n\tStarting value found.")
             return x0  # return the feasible starting value
         else:
-            print('.', end='')
+            tries = tries + 1
+            if(np.mod(tries, 200) == 0):
+                print('.', end='')
 
     print("\n\tNo starting value found after sampling.")
     exit(-1)
@@ -91,7 +111,8 @@ def optimize():
         (CONSTRAINTS["mass"][0], CONSTRAINTS["mass"][1]),
         (CONSTRAINTS["staticFriction"][0], CONSTRAINTS["staticFriction"][1]),
         (CONSTRAINTS["cdValue"][0], CONSTRAINTS["cdValue"][1]),
-        (CONSTRAINTS["frontArea"][0], CONSTRAINTS["frontArea"][1])
+        (CONSTRAINTS["frontArea"][0], CONSTRAINTS["frontArea"][1]),
+        (CONSTRAINTS["airDensity"][0], CONSTRAINTS["airDensity"][1])
     ]
 
     # find starting value
@@ -109,7 +130,6 @@ def optimize():
         print("\n\tInput values:")
         print("\tTurn angle [deg]:", turnAngle)
         print("\tVelocity [m/s]:", velocity)
-        print("\tAir density [kg/m³]:", airDensity)
 
         print("\n\tOutput values:")
         print("\tTurn incline [deg]:", result.x[0])
@@ -117,6 +137,8 @@ def optimize():
         print("\tStatic friction:", result.x[2])
         print("\tCd-Value:", result.x[3])
         print("\tFront area [m²]:", result.x[4])
+        print("\tAir density [kg/m³]:", result.x[5])
+        print("\tCar length [m]:", result.x[5])
 
         print("Optimization finished.")
     else:
