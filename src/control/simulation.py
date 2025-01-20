@@ -1,6 +1,12 @@
-from control.formulae import get_radius, init_vectors
+from datetime import time
+
+import numpy as np
+from sympy import false, true
+
+from control.formulae import get_radius, init_vectors, get_circle_circumference
 from resources.constants import wheelDistance, turnAngle, velocity, gravityAcceleration, gasContent, \
-    temperature
+    temperature, deltaT, scaleT
+from view.wholeView import init_views, updateView
 
 turnIncline = 0
 mass = 0
@@ -20,6 +26,9 @@ f_static_friction = 0
 f_centripetal = 0
 radius = get_radius(wheelDistance, turnAngle)
 
+timePassed = 0
+turnLength = get_circle_circumference(radius) / 4
+
 
 def setOptimizationResults(new_turnIncline, new_mass, new_staticFriction, new_cdValue, new_frontArea, new_airPressure):
     global turnIncline, mass, staticFriction, cdValue, frontArea, airPressure
@@ -32,6 +41,10 @@ def setOptimizationResults(new_turnIncline, new_mass, new_staticFriction, new_cd
     airPressure = new_airPressure
 
 
+def updatePosition():
+    pass
+
+
 def simulate():
     print("Simulating values...")
 
@@ -42,6 +55,18 @@ def simulate():
                      gravityAcceleration)
     )
 
-    
+    init_views()
+
+    isDone = false
+    while(isDone == false):
+        updatePosition()
+        updateView()
+
+        if(velocity * timePassed >= turnLength):
+            isDone = true
+        else:
+            timePassed = timePassed + deltaT
+
+        time.sleep(deltaT * scaleT)
 
     print("Simulation finished.")

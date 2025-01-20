@@ -77,6 +77,17 @@ def constraints(x):
 
 
 def objective(x):
+    #turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure = x
+
+    #objective_value = (
+            #WEIGHTS["turnIncline"] * np.abs(turnIncline) +
+            #WEIGHTS["mass"] * mass
+            #WEIGHTS["staticFriction"] * staticFriction +
+            #WEIGHTS["cdValue"] * cdValue +
+            #WEIGHTS["frontArea"] * frontArea +
+            #WEIGHTS["atmosphericPressure"] * atmosphericPressure
+    #)
+
     return 0
 
 
@@ -144,6 +155,7 @@ def optimize():
         print("\n\tOther values:")
         print("\tGravity acceleration [m/s²]:", gravityAcceleration)
         print("\tInaccuracy tolerance: ", inaccuracy_tolerance)
+        print("\tGas content [J/(kg*pK)]: ", gasContent)
 
         print("\n\tOutput values:")
         print("\tTurn incline [deg]:", result.x[0])

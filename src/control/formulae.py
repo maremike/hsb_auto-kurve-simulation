@@ -101,3 +101,7 @@ def get_airDensity(airPressure, temperature, gasContent):
 
 def get_radius(wheelDistance, turnAngle):
     return wheelDistance / (np.tan(np.radians(turnAngle)))
+
+
+def get_circle_circumference(radius):
+    return 2 * np.pi * radius

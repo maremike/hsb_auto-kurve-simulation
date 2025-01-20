@@ -1,5 +1,5 @@
 import numpy as np
-from resources.constants import turnAngle, velocity, gravityAcceleration, currentPosition
+from resources.constants import turnAngle, velocity, gravityAcceleration
 from resources.constraints import CONSTRAINTS
 from resources import constants
 
