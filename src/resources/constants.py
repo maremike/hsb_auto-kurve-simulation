@@ -22,7 +22,6 @@ WEIGHTS = {
 }
 
 # standard values:
-deltaS = 0.1  # increment distance [m]
 deltaT = 0.1  # time between simulation steps [s]
-scaleT = 5 # multiplies deltaT by this value to manipulate the simulation time
+scaleT = 2 # multiplies deltaT by this value to manipulate the simulation time
 inaccuracy_tolerance = 0.001

@@ -1,12 +1,10 @@
-from datetime import time
-
 import numpy as np
-from sympy import false, true
+import time
 
 from control.formulae import get_radius, init_vectors, get_circle_circumference
 from resources.constants import wheelDistance, turnAngle, velocity, gravityAcceleration, gasContent, \
     temperature, deltaT, scaleT
-from view.wholeView import init_views, updateView
+from view.wholeView import init_views
 
 turnIncline = 0
 mass = 0
@@ -26,7 +24,6 @@ f_static_friction = 0
 f_centripetal = 0
 radius = get_radius(wheelDistance, turnAngle)
 
-timePassed = 0
 turnLength = get_circle_circumference(radius) / 4
 
 
@@ -57,16 +54,19 @@ def simulate():
 
     init_views()
 
-    isDone = false
-    while(isDone == false):
-        updatePosition()
-        updateView()
+    timePassed = 0
+    isDone = False
+    while not isDone:
+        #updatePosition()
+        #updateView()
 
-        if(velocity * timePassed >= turnLength):
-            isDone = true
+        # Check if the velocity and time have traveled the length of the turn
+        if velocity * timePassed >= turnLength:
+            isDone = True
         else:
-            timePassed = timePassed + deltaT
+            timePassed += deltaT  # Update timePassed by deltaT
 
+        # Sleep for the given time, adjusted by scaleT
         time.sleep(deltaT * scaleT)
 
     print("Simulation finished.")

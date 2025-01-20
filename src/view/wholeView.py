@@ -7,6 +7,7 @@ from view import topdownView
 
 
 def init_views():
+    plt.ion()
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))  # 1 row, 2 columns
 
     sideView.init_graph(ax1)  # plot side view on the first subplot
@@ -20,6 +21,7 @@ def init_views():
 
 
 def updateView(frame):
+    pass
     # Plot the car's position (as a point)
     #ax_top.plot(car_pos[0], car_pos[1], 'bo', markersize=10)  # Top-Down
     #ax_side.plot(car_pos[0], car_pos[1], 'bo', markersize=10)  # Side View (z is the same as y for simplicity)

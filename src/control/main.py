@@ -1,5 +1,3 @@
-import numpy as np
-
 from control.validation import validate
 from control.optimization import optimize
 from control.simulation import simulate
