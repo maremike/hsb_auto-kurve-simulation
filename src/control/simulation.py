@@ -3,7 +3,7 @@ import time
 
 from control.formulae import get_radius, init_vectors, get_circle_circumference
 from resources.constants import wheelDistance, turnAngle, velocity, gravityAcceleration, gasContent, \
-    temperature, deltaT, scaleT
+    temperature, deltaT
 from view.wholeView import init_views
 
 turnIncline = 0
@@ -38,7 +38,7 @@ def setOptimizationResults(new_turnIncline, new_mass, new_staticFriction, new_cd
     airPressure = new_airPressure
 
 
-def updatePosition():
+def calculatePosition(distance):
     pass
 
 
@@ -52,21 +52,11 @@ def simulate():
                      gravityAcceleration)
     )
 
-    init_views()
-
     timePassed = 0
-    isDone = False
-    while not isDone:
-        #updatePosition()
-        #updateView()
+    while velocity * timePassed <= turnLength:
+        calculatePosition(velocity * timePassed)
 
-        # Check if the velocity and time have traveled the length of the turn
-        if velocity * timePassed >= turnLength:
-            isDone = True
-        else:
-            timePassed += deltaT  # Update timePassed by deltaT
-
-        # Sleep for the given time, adjusted by scaleT
-        time.sleep(deltaT * scaleT)
+        timePassed = timePassed + deltaT
 
     print("Simulation finished.")
+    init_views()
