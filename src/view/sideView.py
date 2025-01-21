@@ -55,17 +55,13 @@ def add_point(plot, dataSet):
 
 
 def add_vectors(plot, dataSet):
-    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[4][0], dataSet[4][1], angles='xy', scale_units='xy', scale=1,
-                color='green')  # f_centripetal
-    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[5][0], dataSet[5][1], angles='xy', scale_units='xy', scale=1,
-                color='green')  # f_centrifugal
-    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[6][0], dataSet[6][1], angles='xy', scale_units='xy', scale=29999,
-                color='purple')  # f_gravity_parallel
-    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[7][0], dataSet[7][1], angles='xy', scale_units='xy', scale=29999,
-                color='blue')  # f_static_friction
-    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[8][0], dataSet[8][1], angles='xy', scale_units='xy', scale=49999,
-                color='purple')  # f_neutral
-    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[9][0], dataSet[9][1], angles='xy', scale_units='xy', scale=49999,
-                color='yellow')  # f_road
-    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[10][0], dataSet[10][1], angles='xy', scale_units='xy', scale=69999,
-                color='purple')  # f_gravity
+    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[6][0], dataSet[6][1], angles='xy', scale_units='xy', scale=19999,
+                color='purple', alpha=1)  # f_gravity_parallel
+    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[7][0], dataSet[7][1], angles='xy', scale_units='xy', scale=19999,
+                color='blue', alpha=1)  # f_static_friction
+    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[8][0], dataSet[8][1], angles='xy', scale_units='xy', scale=19999,
+                color='purple', alpha=1)  # f_neutral
+    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[9][0], dataSet[9][1], angles='xy', scale_units='xy', scale=19999,
+                color='yellow', alpha=1)  # f_road
+    plot.quiver(dataSet[0][0], dataSet[0][1], dataSet[10][0], dataSet[10][1], angles='xy', scale_units='xy',
+                scale=19999, color='purple', alpha=1)  # f_gravity

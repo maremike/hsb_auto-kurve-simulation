@@ -110,7 +110,7 @@ def findStartingValue(bounds):
 
     # using Latin Hypercube Sampling to sample points from the parameter space
     sampler = qmc.LatinHypercube(d=6)
-    num_samples = 20000
+    num_samples = 4000
     sample = sampler.random(n=num_samples)
     lower_bounds = [b[0] for b in bounds]
     upper_bounds = [b[1] for b in bounds]
@@ -129,7 +129,7 @@ def findStartingValue(bounds):
             return x0  # return the feasible starting value
         else:
             tries = tries + 1
-            if (np.mod(tries, 200) == 0):
+            if (np.mod(tries, 40) == 0):
                 print('.', end='')
 
     print(f"\n\tNo starting value found after {num_samples} samples.")

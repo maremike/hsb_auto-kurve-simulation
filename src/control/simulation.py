@@ -86,4 +86,5 @@ def simulate():
         timePassed += deltaT
 
     print("Simulation finished.")
-    init_views(dataList, int(len(dataList) / 2))
+    #init_views(dataList, int(len(dataList) / 2))
+    init_views(dataList, 1)
