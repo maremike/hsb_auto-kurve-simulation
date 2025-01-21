@@ -3,7 +3,7 @@ from scipy.stats import qmc
 from scipy.optimize import minimize
 
 from control.simulation import setOptimizationResults
-from resources.constraints import CONSTRAINTS
+from resources.constants import CONSTRAINTS
 from control.formulae import init_vectors, transform_vector
 from resources.constants import turnAngle, velocity, gravityAcceleration, inaccuracy_tolerance, temperature, gasContent
 
