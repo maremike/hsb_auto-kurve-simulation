@@ -55,6 +55,10 @@ def ineq_constraints(x):
         np.array(f_velocity), 0, np.radians(turnAngle), 0)), 0, 0, np.radians(turnIncline))))
     tolerance8 = np.linalg.norm(f_new_velocity) * inaccuracy_tolerance
 
+    # arctan(f_gravity_parallel(y) / f_gravity_parallel(x)) = turnIncline
+    constraint9 = np.arctan(f_gravity_parallel[1] / f_gravity_parallel[0]) - np.radians(turnIncline)
+    tolerance9 = np.arctan(f_gravity_parallel[1] / f_gravity_parallel[0]) * inaccuracy_tolerance
+
     # inequality constraints g(x) >= 0 (conditions must be more than or equal to 0 to succeed)
     ineq_constraints = [
         (np.abs(constraint0) - tolerance0) * (-1),
@@ -65,7 +69,8 @@ def ineq_constraints(x):
         (np.abs(constraint5) - tolerance5) * (-1),
         (np.abs(constraint6) - tolerance6) * (-1),
         (np.abs(constraint7) - tolerance7) * (-1),
-        (np.abs(constraint8) - tolerance8) * (-1)
+        (np.abs(constraint8) - tolerance8) * (-1),
+        (np.abs(constraint9) - tolerance9) * (-1)
     ]
     return ineq_constraints
 
@@ -77,18 +82,27 @@ def constraints(x):
 
 
 def objective(x):
-    #turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure = x
+    turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure = x
 
-    #objective_value = (
-            #WEIGHTS["turnIncline"] * np.abs(turnIncline) +
-            #WEIGHTS["mass"] * mass
-            #WEIGHTS["staticFriction"] * staticFriction +
-            #WEIGHTS["cdValue"] * cdValue +
-            #WEIGHTS["frontArea"] * frontArea +
-            #WEIGHTS["atmosphericPressure"] * atmosphericPressure
-    #)
+    # Weighting factors for each parameter (higher weights give more priority)
+    weight_mass = 1
+    weight_staticFriction = 0
+    weight_turnIncline = 0
+    weight_cdValue = 0
+    weight_frontArea = 0.5
+    weight_atmosphericPressure = 0
 
-    return 0
+    # Penalties for each parameter (we assume we want to minimize these)
+    mass_penalty = weight_mass * mass
+    staticFriction_penalty = weight_staticFriction * staticFriction
+    turnIncline_penalty = weight_turnIncline * turnIncline
+    cdValue_penalty = weight_cdValue * cdValue
+    frontArea_penalty = weight_frontArea * frontArea
+    atmosphericPressure_penalty = weight_atmosphericPressure * atmosphericPressure
+
+    # Total objective function is a weighted sum of the penalties
+    return (mass_penalty + staticFriction_penalty + turnIncline_penalty + cdValue_penalty + frontArea_penalty +
+            atmosphericPressure_penalty)
 
 
 def findStartingValue(bounds):

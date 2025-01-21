@@ -12,7 +12,7 @@ CONSTRAINTS = {
     "frontArea": (2, 5),  # values of standard automobiles up to 3.5 tons
 
     # turn inclination [degrees]
-    "turnIncline": (0, 80),  # 0-80 degrees
+    "turnIncline": (0, 60),  # 0-60 degrees
 
     # turning angle  [degrees]
     "turnAngle": (0, 80),  # 0-80 degrees
