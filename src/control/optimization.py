@@ -11,6 +11,7 @@ from resources.constants import turnAngle, velocity, gravityAcceleration, inaccu
 def ineq_constraints(x):
     turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure = x
 
+    # get forces
     (f_drag, f_velocity, f_new_velocity, f_centrifugal, f_gravity, f_gravity_parallel, f_neutral, f_road,
      f_static_friction, f_centripetal) = (
         init_vectors(turnIncline, mass, cdValue, frontArea, atmosphericPressure, gasContent, temperature, velocity,
@@ -77,14 +78,14 @@ def ineq_constraints(x):
 
 def constraints(x):
     g = ineq_constraints(x)  # retrieve constraints
-    cons = [{'type': 'ineq', 'fun': lambda x, g_i=g_i: g_i} for g_i in g]  # inequality constraints: g(x) >= 0
+    cons = [{'type': 'ineq', 'fun': lambda x, g_i=g_i: g_i} for g_i in g] # add constraints
     return cons
 
 
 def objective(x):
     turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure = x
 
-    # Weighting factors for each parameter (higher weights give more priority)
+    # weighting factors for each parameter (higher weights give more priority)
     weight_mass = 1
     weight_staticFriction = 0
     weight_turnIncline = 0
@@ -92,7 +93,7 @@ def objective(x):
     weight_frontArea = 0.5
     weight_atmosphericPressure = 0
 
-    # Penalties for each parameter (we assume we want to minimize these)
+    # penalties for each parameter (minimizing)
     mass_penalty = weight_mass * mass
     staticFriction_penalty = weight_staticFriction * staticFriction
     turnIncline_penalty = weight_turnIncline * turnIncline
@@ -100,7 +101,7 @@ def objective(x):
     frontArea_penalty = weight_frontArea * frontArea
     atmosphericPressure_penalty = weight_atmosphericPressure * atmosphericPressure
 
-    # Total objective function is a weighted sum of the penalties
+    # total objective function is a weighted sum of the penalties
     return (mass_penalty + staticFriction_penalty + turnIncline_penalty + cdValue_penalty + frontArea_penalty +
             atmosphericPressure_penalty)
 
@@ -108,10 +109,12 @@ def objective(x):
 def findStartingValue(bounds):
     print("\tFinding starting value", end='')
 
-    # using Latin Hypercube Sampling to sample points from the parameter space
-    sampler = qmc.LatinHypercube(d=6)
-    num_samples = 4000
+    # using Latin Hypercube Sampling (LHS) to sample points from the parameter space
+    sampler = qmc.LatinHypercube(d=6) # amount of parameters
+    num_samples = 4000 # number of samples
     sample = sampler.random(n=num_samples)
+
+    # defining bounds
     lower_bounds = [b[0] for b in bounds]
     upper_bounds = [b[1] for b in bounds]
     assert len(lower_bounds) == len(upper_bounds) == 6, "Bounds should be defined for 6 parameters."
@@ -120,9 +123,9 @@ def findStartingValue(bounds):
     scaled_samples = qmc.scale(sample, lower_bounds, upper_bounds)
 
     tries = 1
-    for x0 in scaled_samples:
+    for x0 in scaled_samples: # tries multiple starting values
         cons = constraints(x0)  # construct constraints for the optimizer
-        result = minimize(objective, x0, method="SLSQP", bounds=bounds, constraints=cons)  # optimization
+        result = minimize(objective, x0, method="SLSQP", bounds=bounds, constraints=cons) # optimization
 
         if result.success:
             print("\n\tStarting value found.")

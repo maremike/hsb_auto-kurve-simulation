@@ -2,33 +2,39 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import control.simulation
-from resources.constants import functionT, curveAngle, roadWidth, wheelDistance, turnAngle
+from resources.constants import functionT, curveAngle, roadWidth
 
 
-def init_graph(plot, dataList, focusingDataset):
+def add_road(radius, theta):
+    # calculate road values
+    x1 = (radius - roadWidth / 2) * np.cos(theta) # inner road: x values
+    z1 = -1 * (radius - roadWidth / 2) * np.sin(theta) # inner road: z values
+    x2 = radius * np.cos(theta) # middle road: x values
+    z2 = -1 * radius * np.sin(theta) # middle road: z values
+    x3 = (radius + roadWidth / 2) * np.cos(theta) # outer road: x values
+    z3 = -1 * (radius + roadWidth / 2) * np.sin(theta) # outer road: z values
+
+    # plot road
+    plt.plot(x1, z1, color='black', linestyle='-', label="Inner Road") # inner road border
+    plt.plot(x2, z2, color='black', linestyle='--', label="Middle Road") # middle of the road
+    plt.plot(x3, z3, color='black', linestyle='-', label="Outer Road") # outer road border
+
+
+def init_graph(plot, dataList, datasetNumber):
     from control.simulation import radius
 
-    # Initialize limits with the first data point
-    minX, maxX, minZ, maxZ = np.inf, -np.inf, np.inf, -np.inf
+    # plot road
+    theta = np.linspace(0, 2 * np.pi * (curveAngle / 360), functionT)
+    add_road(radius, theta)
 
-    # Plot road
-    theta = np.linspace(0, 2 * np.pi * (curveAngle / 360), functionT)  # Adjusted for curveAngle
-    x1 = (radius - roadWidth / 2) * np.cos(theta)
-    x2 = radius * np.cos(theta)
-    x3 = (radius + roadWidth / 2) * np.cos(theta)
-    z1 = -1 * (radius - roadWidth / 2) * np.sin(theta)
-    z2 = -1 * radius * np.sin(theta)
-    z3 = -1 * (radius + roadWidth / 2) * np.sin(theta)
-    plt.plot(x1, z1, color='black', linestyle='-', label="Inner Road")
-    plt.plot(x2, z2, color='black', linestyle='--', label="Middle Road")
-    plt.plot(x3, z3, color='black', linestyle='-', label="Outer Road")
-
+    # calculate the range of the axes
     for i in theta:
         minX = min((radius + roadWidth / 2) * np.cos(theta))
         maxX = max((radius + roadWidth / 2) * np.sin(theta))
         minZ = min((radius + roadWidth / 2) * np.sin(theta))
         maxZ = max((radius + roadWidth / 2) * np.sin(theta))
 
+    # initialize graph
     plot.set_xlim(-minX, maxX)
     plot.set_ylim(minZ, -maxZ)
     plot.set_title("Top-down View")
@@ -37,27 +43,30 @@ def init_graph(plot, dataList, focusingDataset):
     plot.set_aspect('equal', adjustable='datalim')
     plot.autoscale(True)
 
+    # add relevant simulation data
     add_points(plot, dataList)
-    add_vectors(plot, dataList[focusingDataset])
+    add_vectors(plot, dataList[datasetNumber])
 
 
 def add_points(plot, dataList):
+    # add all car positions from the simulation
     for i in dataList:
         plot.scatter(i[0][0], i[0][2], color='grey',  marker='.', s=65)
 
 
-def add_vectors(plot, dataSet):
-    plot.quiver(dataSet[0][0], dataSet[0][2], dataSet[1][0], dataSet[1][2], angles='xy', scale_units='xy', scale=1,
+def add_vectors(plot, dataset):
+    # display vectors
+    plot.quiver(dataset[0][0], dataset[0][2], dataset[2][0], dataset[2][2], angles='xy', scale_units='xy', scale=1,
                 color='red')  # f_velocity
-    plot.quiver(dataSet[0][0], dataSet[0][2], dataSet[2][0], dataSet[2][2], angles='xy', scale_units='xy', scale=1,
+    plot.quiver(dataset[0][0], dataset[0][2], dataset[3][0], dataset[3][2], angles='xy', scale_units='xy', scale=1,
                 color='red')  # f_new_velocity
-    plot.quiver(dataSet[0][0], dataSet[0][2], dataSet[3][0], dataSet[3][2], angles='xy', scale_units='xy', scale=1,
+    plot.quiver(dataset[0][0], dataset[0][2], dataset[4][0], dataset[4][2], angles='xy', scale_units='xy', scale=1,
                 color='orange')  # f_drag
-    plot.quiver(dataSet[0][0], dataSet[0][2], dataSet[4][0], dataSet[4][2], angles='xy', scale_units='xy', scale=1,
+    plot.quiver(dataset[0][0], dataset[0][2], dataset[5][0], dataset[5][2], angles='xy', scale_units='xy', scale=1,
                 color='green')  # f_centripetal
-    plot.quiver(dataSet[0][0], dataSet[0][2], dataSet[5][0], dataSet[5][2], angles='xy', scale_units='xy', scale=1,
+    plot.quiver(dataset[0][0], dataset[0][2], dataset[6][0], dataset[6][2], angles='xy', scale_units='xy', scale=1,
                 color='green')  # f_centrifugal
-    plot.quiver(dataSet[0][0], dataSet[0][2], dataSet[6][0], dataSet[6][2], angles='xy', scale_units='xy', scale=9999,
+    plot.quiver(dataset[0][0], dataset[0][2], dataset[7][0], dataset[7][2], angles='xy', scale_units='xy', scale=999,
                 color='purple')  # f_gravity_parallel
-    plot.quiver(dataSet[0][0], dataSet[0][2], dataSet[7][0], dataSet[7][2], angles='xy', scale_units='xy', scale=9999,
+    plot.quiver(dataset[0][0], dataset[0][2], dataset[8][0], dataset[8][2], angles='xy', scale_units='xy', scale=999,
                 color='blue')  # f_static_friction

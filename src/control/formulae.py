@@ -3,6 +3,7 @@ import numpy as np
 
 def init_vectors(turnIncline, mass, cdValue, frontArea, airPressure, gasContent, temperature, velocity, turnAngle,
                  gravityAcceleration):
+    # calculates all for the optimization an simulation necessary vectors
     f_drag = init_f_drag(airPressure, gasContent, temperature, cdValue, frontArea, velocity)
     f_velocity = init_f_velocity(f_drag)
     f_new_velocity = init_new_f_velocity(f_velocity, turnAngle, turnIncline)
@@ -65,7 +66,8 @@ def init_f_centripetal(f_centrifugal):
     return np.array(f_centrifugal) * -1
 
 
-def rotation_matrix(pitch, yaw, roll):  # pitch = x, yaw = y, roll = z
+def rotation_matrix(pitch, yaw, roll):
+    # pitch = x, yaw = y, roll = z
     # Rotation matrices
     R_x = np.array([
         [1, 0, 0],
@@ -89,8 +91,8 @@ def rotation_matrix(pitch, yaw, roll):  # pitch = x, yaw = y, roll = z
     return R_z @ R_y @ R_x
 
 
-def transform_vector(vector, pitch, yaw,
-                     roll):  # pitch = x (counterclockwise), yaw = y (counterclockwise), roll = z (counterclockwise)
+def transform_vector(vector, pitch, yaw, roll):
+    # pitch = x (counterclockwise), yaw = y (counterclockwise), roll = z (counterclockwise)
     R = rotation_matrix(pitch, yaw, roll)
     return R @ vector
 
