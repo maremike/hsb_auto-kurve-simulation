@@ -105,3 +105,9 @@ def get_radius(wheelDistance, turnAngle):
 
 def get_circle_circumference(radius):
     return 2 * np.pi * radius
+
+
+def get_Coordinates(radius, distance, totalDistance, curveAngle, turnIncline, roadWidth):
+    return [radius * np.cos(np.radians(distance * curveAngle / totalDistance)),
+            roadWidth / 2 * np.sin(np.radians(turnIncline)),
+            -1 * radius * np.sin(np.radians(distance * curveAngle / totalDistance))]
