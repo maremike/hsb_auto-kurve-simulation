@@ -26,7 +26,6 @@ weight_turnIncline = None
 weight_cdValue = None
 weight_frontArea = None
 weight_atmosphericPressure = None
-
 f_drag = None
 f_velocity = None
 f_new_velocity = None
@@ -37,14 +36,11 @@ f_neutral = None
 f_road = None
 f_static_friction = None
 f_centripetal = None
-
 radius = None
 totalDistance = None
-
 dataList = []
 simulationIterations = None
 functionT = None
 inaccuracyTolerance = None
 curveAngle = None
-
 CONSTRAINTS = {}

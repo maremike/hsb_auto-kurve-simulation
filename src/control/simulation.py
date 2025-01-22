@@ -1,8 +1,7 @@
 import numpy as np
 
-from control.formulae import init_vectors, get_Coordinates, transform_vector, get_radius, get_circle_circumference
+from control.formulae import get_Coordinates, transform_vector, get_radius, get_circle_circumference
 from resources import variables
-from view.wholeView import init_views
 
 
 def getDataset(distance):
@@ -38,6 +37,3 @@ def simulate():
         timePassed += deltaT  # increase time
 
     print("Simulation finished.")
-
-    # initializes views with two graphs. Focuses on the middle dataset, where the current vectors will be displayed
-    init_views(variables.dataList, int(len(variables.dataList) / 2))

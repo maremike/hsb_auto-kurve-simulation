@@ -79,7 +79,7 @@ parameters:
       range:
   simulation:
     simulationIterations: # number of iterations per simulation (more = more accuracy)
-      value: 200
+      value: 20
       unit: ""
       range:
     functionT:

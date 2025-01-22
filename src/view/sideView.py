@@ -1,6 +1,5 @@
 import numpy as np
 
-import control.simulation
 from control.formulae import transform_vector
 from resources import variables
 

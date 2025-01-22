@@ -5,14 +5,14 @@ from resources import variables
 
 
 def get_absolute_path(relative_path):
-    # Construct the absolute path to the file
+    # construct the absolute path to the file
     script_dir = os.path.dirname(__file__)  # Directory of this script
     combined_path = os.path.join(script_dir, relative_path)  # combine two paths
     return os.path.normpath(combined_path)  # get absolute path
 
 
 def validate_and_assign_parameters(path):
-    # Load the file
+    # load the file
     with open(path, 'r') as f:
         data = yaml.safe_load(f)
 
@@ -34,7 +34,7 @@ def validate_and_assign_parameters(path):
                 setattr(variables, param_name, value)  # Assign to variables module dynamically
                 continue
 
-            # Validate value against range
+            # validate value against range
             if value is not None and range_[0] <= value <= range_[1]:
                 print(f"\t\t{param_name}: Valid. Assigned value: {value}")
                 setattr(variables, param_name, value)  # Assign to variables module dynamically
@@ -43,7 +43,7 @@ def validate_and_assign_parameters(path):
             else:
                 print(f"\t\t{param_name}: No value provided.")
 
-    # Print the populated CONSTRAINTS dictionary
+    # print the populated CONSTRAINTS dictionary
     print("\tFinal CONSTRAINTS dictionary:")
     print(f"\t\t{variables.CONSTRAINTS}")
 
