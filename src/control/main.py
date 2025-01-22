@@ -4,6 +4,30 @@ from control.simulation import simulate
 from resources import variables
 from view.wholeView import init_views
 
+"""
+To whomever it may concern,
+
+This code hath been devised under a contract with the Hochschule Bremen (HSB). 
+The coordinator of said contract was Prof. Dr. Patrick Draheim.
+
+This is my work. It is a simulation which, based on the input parameters, optimizes the remaining ones and simulates a 
+car traversing an inclined turn. The parameters may be adjusted in the configuration file, allowing for the simulation 
+of diverse vehicles and various types of curves. The program makes use of three dimensional space, and vector rotations.
+
+The chief input parameters, which may be altered to change the result, are the velocity at which the car moves around 
+the curve and the turnAngle between the front and rear tires, which arises due to the turn. Moreover, the temperature 
+of the surrounding air may be modified as well. But beware, if you change the range, the realism will estrange.
+
+Lastly, upon the completion of the simulation, the program presents a window displaying the course of the simulation. 
+It reveals a particular span of time, during which the vectors did point in their respective directions.
+
+Following dependencies are used: numpy, matplotlib, scipy, yaml, os
+
+Signed, Michael Markov (mmarkov)
+
+January 22, 2025
+"""
+
 if __name__ == '__main__':
     validate()  # checks values for domains
     optimize()  # determines best values for the simulation

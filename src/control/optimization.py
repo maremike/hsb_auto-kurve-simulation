@@ -7,6 +7,20 @@ from resources import variables
 
 
 def setOptimizationResults(turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure):
+    """
+    Sets the optimization results to global variables.
+
+    Parameters:
+        turnIncline (float): The turn incline (in degrees).
+        mass (float): The mass of the vehicle (in kg).
+        staticFriction (float): The static friction coefficient.
+        cdValue (float): The drag coefficient.
+        frontArea (float): The front area of the vehicle (in m²).
+        atmosphericPressure (float): The atmospheric pressure (in Pa).
+
+    Returns:
+        None
+    """
     # set results to global values
     variables.turnIncline = turnIncline
     variables.mass = mass
@@ -24,6 +38,15 @@ def setOptimizationResults(turnIncline, mass, staticFriction, cdValue, frontArea
 
 
 def ineq_constraints(x):
+    """
+    Defines inequality constraints for the optimization process based on input parameters.
+
+    Parameters:
+        x (list): A list containing the parameters [turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure].
+
+    Returns:
+        list: A list of inequality constraints.
+    """
     turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure = x
 
     # get forces
@@ -92,12 +115,30 @@ def ineq_constraints(x):
 
 
 def constraints(x):
+    """
+    Constructs constraints for the optimization process.
+
+    Parameters:
+        x (list): A list of input parameters for the optimization.
+
+    Returns:
+        list: A list of dictionaries representing inequality constraints.
+    """
     g = ineq_constraints(x)  # retrieve constraints
     cons = [{'type': 'ineq', 'fun': lambda x, g_i=g_i: g_i} for g_i in g]  # add constraints
     return cons
 
 
 def objective(x):
+    """
+    Defines the objective function for the optimization, which is a weighted sum of penalties.
+
+    Parameters:
+        x (list): A list of input parameters [turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure].
+
+    Returns:
+        float: The total penalty value to be minimized.
+    """
     turnIncline, mass, staticFriction, cdValue, frontArea, atmosphericPressure = x
 
     # weighting factors for each parameter (higher weights give more priority)
@@ -116,6 +157,15 @@ def objective(x):
 
 
 def findStartingValue(bounds):
+    """
+    Finds a feasible starting point for the optimization process using Latin Hypercube Sampling.
+
+    Parameters:
+        bounds (list): The bounds for the optimization parameters.
+
+    Returns:
+        list: A feasible starting value for the optimization.
+    """
     print("\tFinding starting value", end='')
 
     # using Latin Hypercube Sampling (LHS) to sample points from the parameter space
@@ -149,6 +199,15 @@ def findStartingValue(bounds):
 
 
 def get_bounds(constraints):
+    """
+    Extracts the bounds for each optimization parameter from the constraint definitions.
+
+    Parameters:
+        constraints (dict): A dictionary of constraints for each parameter.
+
+    Returns:
+        list: A list of tuples representing the bounds for each parameter.
+    """
     return [(constraints["turnIncline"][0], constraints["turnIncline"][1]),
             (constraints["mass"][0], constraints["mass"][1]),
             (constraints["staticFriction"][0], constraints["staticFriction"][1]),
@@ -158,6 +217,12 @@ def get_bounds(constraints):
 
 
 def optimize():
+    """
+    Performs the optimization process for the vehicle parameters.
+
+    Returns:
+        None
+    """
     print("Optimizing values...")
 
     # create bounds
