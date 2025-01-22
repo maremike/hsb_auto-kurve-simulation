@@ -10,22 +10,17 @@ def init_graph(plot, dataset):
     triangle, setting up the graph's limits, and adding simulation data such as the current position and vectors.
 
     Parameters:
-    plot (matplotlib.axes.Axes): The plot object to which the data will be drawn.
-    dataset (list): The simulation dataset, including coordinates and forces at the current position.
+        plot (matplotlib.axes.Axes): The plot object to which the data will be drawn.
+        dataset (list): The simulation dataset, including coordinates and forces at the current position.
 
     Returns:
-    None
+        None
 
     Formula:
-    - minX = dataset[0][0] - (cos(turnIncline) * roadWidth)
-    - maxX = dataset[0][0] + (cos(turnIncline) * roadWidth)
-    - minY = dataset[0][1] - (sin(turnIncline) * roadWidth)
-    - maxY = dataset[0][1] + (sin(turnIncline) * roadWidth)
-
-    Where:
-    - dataset[0][0] and dataset[0][1] are the x and y coordinates of the current position.
-    - turnIncline is the incline angle of the road.
-    - roadWidth is the width of the road.
+        - minX = dataset[0][0] - (cos(turnIncline) * roadWidth)
+        - maxX = dataset[0][0] + (cos(turnIncline) * roadWidth)
+        - minY = dataset[0][1] - (sin(turnIncline) * roadWidth)
+        - maxY = dataset[0][1] + (sin(turnIncline) * roadWidth)
     """
     # calculate the range of the axes
     minX = dataset[0][0] - (np.cos(np.radians(variables.turnIncline)) * variables.roadWidth)
@@ -57,22 +52,18 @@ def add_road(plot, hypotenuse_length, angle_degrees, x1, y1):
     angle of the incline.
 
     Parameters:
-    plot (matplotlib.axes.Axes): The plot object to which the triangle will be added.
-    hypotenuse_length (float): The length of the hypotenuse (road width).
-    angle_degrees (float): The incline angle of the road in degrees.
-    x1 (float): The starting x-coordinate of the triangle.
-    y1 (float): The starting y-coordinate of the triangle.
+        plot (matplotlib.axes.Axes): The plot object to which the triangle will be added.
+        hypotenuse_length (float): The length of the hypotenuse (road width).
+        angle_degrees (float): The incline angle of the road in degrees.
+        x1 (float): The starting x-coordinate of the triangle.
+        y1 (float): The starting y-coordinate of the triangle.
 
     Returns:
-    None
+        None
 
     Formula:
-    - adjacent = hypotenuse_length * cos(angle_degrees)
-    - opposite = hypotenuse_length * sin(angle_degrees)
-
-    Where:
-    - hypotenuse_length is the road width.
-    - angle_degrees is the angle of the incline of the road.
+        - adjacent = hypotenuse_length * cos(angle_degrees)
+        - opposite = hypotenuse_length * sin(angle_degrees)
     """
     # calculate all sides of the triangle
     adjacent = hypotenuse_length * np.cos(np.radians(angle_degrees))  # Length of the adjacent side
@@ -93,14 +84,14 @@ def add_point(plot, dataset):
     Adds the current position of the car to the plot as a point.
 
     Parameters:
-    plot (matplotlib.axes.Axes): The plot object to which the point will be added.
-    dataset (list): The simulation dataset, containing the current coordinates.
+        plot (matplotlib.axes.Axes): The plot object to which the point will be added.
+        dataset (list): The simulation dataset, containing the current coordinates.
 
     Returns:
-    None
+        None
 
     Formula:
-    None
+        None
     """
     # add the current position of the car to the graph
     plot.scatter(dataset[0][0], dataset[0][1], color='grey', marker='.', s=400)
@@ -112,18 +103,14 @@ def add_vectors(plot, dataset):
     current angle of the curve.
 
     Parameters:
-    plot (matplotlib.axes.Axes): The plot object to which the vectors will be added.
-    dataset (list): The simulation dataset, containing the vectors and the current angle.
+        plot (matplotlib.axes.Axes): The plot object to which the vectors will be added.
+        dataset (list): The simulation dataset, containing the vectors and the current angle.
 
     Returns:
-    None
+        None
 
     Formula:
-    - transform_vector(dataset[i], 0, radians(dataset[1] * -1), 0)
-
-    Where:
-    - dataset[i] represents the vector at index i (for different forces like gravity, friction, etc.).
-    - dataset[1] is the angle at the current position on the curve, used to rotate the vectors.
+        - transform_vector(dataset[i], 0, radians(dataset[1] * -1), 0)
     """
     # rotate vectors to be shown correctly on a 2D plane
     for i in range(2, 11):
