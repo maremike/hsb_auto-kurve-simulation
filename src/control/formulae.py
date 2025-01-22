@@ -3,7 +3,7 @@ import numpy as np
 
 def init_vectors(turnIncline, mass, cdValue, frontArea, airPressure, gasContent, temperature, velocity, turnAngle,
                  gravityAcceleration):
-    # calculates all for the optimization an simulation necessary vectors
+    # calculates all for the necessary vectors for optimization and simulation
     f_drag = init_f_drag(airPressure, gasContent, temperature, cdValue, frontArea, velocity)
     f_velocity = init_f_velocity(f_drag)
     f_new_velocity = init_new_f_velocity(f_velocity, turnAngle, turnIncline)

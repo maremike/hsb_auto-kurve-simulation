@@ -1,0 +1,96 @@
+parameters:
+  environmental:
+    turnAngle: # angle between the front and back tires of the car
+      value: 40
+      unit: "°"
+      range: [ 1, 70 ]
+    velocity: # speed that the car drives through the curve at
+      value: 20
+      unit: "m/s"
+      range: [ 0, 25 ]
+    wheelDistance: # responsible for curve radius
+      value: 3
+      unit: "m"
+      range:
+    temperature: # driving conditions
+      value: 20
+      unit: "°C"
+      range: [ 5, 30 ] # below freezing point are different friction coefficients
+    gravityAcceleration:
+      value: 9.81 # world-wide average
+      unit: "m/s²"
+      range: [ 9.81, 9.81 ]
+    gasContent:
+      value: 287.05 # average gas content on earth (temperature dependent)
+      unit: "J/(kg*pK)"
+      range: [ 287.05, 297.05 ]
+    roadWidth: # width of the road
+      value: 3
+      unit: "m"
+      range:
+    mass: # mass of the car
+      value:
+      unit: "kg"
+      range: [ 800, 2000 ] # considering a standard automobile
+    staticFriction: # coefficient of static friction
+      value:
+      unit: ""
+      range: [ 0.5, 0.9 ] # considering rubber tires on asphalt during wet and dry conditions
+    cdValue: # aerodynamic coefficient
+      value:
+      unit: ""
+      range: [ 0.28, 0.41 ] # values of various modern standard automobiles
+    frontArea: # area of the automobile from the front perspective
+      value:
+      unit: "m²"
+      range: [ 2.5, 3.7 ] # values of standard modern automobiles
+    turnIncline: # angle of the road in relation to the ground (flat)
+      value:
+      unit: "°"
+      range: [ 0, 30 ]
+    atmosphericPressure:
+      value: # (altitude dependant)
+      unit: "Pa"
+      range: [ 950, 1000 ] # minimum and maximum average values for air pressure on earth
+  optimization:
+    weight_mass:
+      value: 1
+      unit: ""
+      range:
+    weight_staticFriction:
+      value: 0
+      unit: ""
+      range:
+    weight_turnIncline:
+      value: 0
+      unit: ""
+      range:
+    weight_cdValue:
+      value: 0
+      unit: ""
+      range:
+    weight_frontArea:
+      value: 0.5
+      unit: ""
+      range:
+    weight_atmosphericPressure:
+      value: 0
+      unit: ""
+      range:
+  simulation:
+    simulationIterations: # number of iterations per simulation (more = more accuracy)
+      value: 200
+      unit: ""
+      range:
+    functionT:
+      value: 400
+      unit: ""
+      range:
+    inaccuracyTolerance: # tolerance value that lets slight inaccuracy pass
+      value: 0.003
+      unit: ""
+      range:
+    curveAngle: # angle of the curve
+      value: 90 # default: quarter of a circle
+      unit: "°"
+      range:

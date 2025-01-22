@@ -2,37 +2,39 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import control.simulation
-from resources.constants import functionT, curveAngle, roadWidth
+from resources import variables
 
 
 def add_road(radius, theta):
     # calculate road values
-    x1 = (radius - roadWidth / 2) * np.cos(theta) # inner road: x values
-    z1 = -1 * (radius - roadWidth / 2) * np.sin(theta) # inner road: z values
-    x2 = radius * np.cos(theta) # middle road: x values
-    z2 = -1 * radius * np.sin(theta) # middle road: z values
-    x3 = (radius + roadWidth / 2) * np.cos(theta) # outer road: x values
-    z3 = -1 * (radius + roadWidth / 2) * np.sin(theta) # outer road: z values
+    x1 = (radius - variables.roadWidth / 2) * np.cos(theta)  # inner road: x values
+    z1 = -1 * (radius - variables.roadWidth / 2) * np.sin(theta)  # inner road: z values
+    x2 = radius * np.cos(theta)  # middle road: x values
+    z2 = -1 * radius * np.sin(theta)  # middle road: z values
+    x3 = (radius + variables.roadWidth / 2) * np.cos(theta)  # outer road: x values
+    z3 = -1 * (radius + variables.roadWidth / 2) * np.sin(theta)  # outer road: z values
 
     # plot road
-    plt.plot(x1, z1, color='black', linestyle='-', label="Inner Road") # inner road border
-    plt.plot(x2, z2, color='black', linestyle='--', label="Middle Road") # middle of the road
-    plt.plot(x3, z3, color='black', linestyle='-', label="Outer Road") # outer road border
+    plt.plot(x1, z1, color='black', linestyle='-', label="Inner Road")  # inner road border
+    plt.plot(x2, z2, color='black', linestyle='--', label="Middle Road")  # middle of the road
+    plt.plot(x3, z3, color='black', linestyle='-', label="Outer Road")  # outer road border
 
 
 def init_graph(plot, dataList, datasetNumber):
-    from control.simulation import radius
-
     # plot road
-    theta = np.linspace(0, 2 * np.pi * (curveAngle / 360), functionT)
-    add_road(radius, theta)
+    theta = np.linspace(0, 2 * np.pi * (variables.curveAngle / 360), variables.functionT)
+    add_road(variables.radius, theta)
 
     # calculate the range of the axes
+    minX = None
+    maxX = None
+    minZ = None
+    maxZ = None
     for i in theta:
-        minX = min((radius + roadWidth / 2) * np.cos(theta))
-        maxX = max((radius + roadWidth / 2) * np.sin(theta))
-        minZ = min((radius + roadWidth / 2) * np.sin(theta))
-        maxZ = max((radius + roadWidth / 2) * np.sin(theta))
+        minX = min((variables.radius + variables.roadWidth / 2) * np.cos(theta))
+        maxX = max((variables.radius + variables.roadWidth / 2) * np.sin(theta))
+        minZ = min((variables.radius + variables.roadWidth / 2) * np.sin(theta))
+        maxZ = max((variables.radius + variables.roadWidth / 2) * np.sin(theta))
 
     # initialize graph
     plot.set_xlim(-minX, maxX)
@@ -51,7 +53,7 @@ def init_graph(plot, dataList, datasetNumber):
 def add_points(plot, dataList):
     # add all car positions from the simulation
     for i in dataList:
-        plot.scatter(i[0][0], i[0][2], color='grey',  marker='.', s=65)
+        plot.scatter(i[0][0], i[0][2], color='grey', marker='.', s=65)
 
 
 def add_vectors(plot, dataset):

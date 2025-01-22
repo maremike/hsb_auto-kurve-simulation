@@ -2,22 +2,20 @@ import numpy as np
 
 import control.simulation
 from control.formulae import transform_vector
-from resources.constants import roadWidth
+from resources import variables
 
 
 def init_graph(plot, dataset):
-    from control.simulation import turnIncline
-
     # calculate the range of the axes
-    minX = dataset[0][0] - (np.cos(np.radians(turnIncline)) * roadWidth)
-    maxX = dataset[0][0] + (np.cos(np.radians(turnIncline)) * roadWidth)
-    minY = dataset[0][1] - (np.sin(np.radians(turnIncline) * roadWidth))
-    maxY = dataset[0][1] + (np.sin(np.radians(turnIncline) * roadWidth))
+    minX = dataset[0][0] - (np.cos(np.radians(variables.turnIncline)) * variables.roadWidth)
+    maxX = dataset[0][0] + (np.cos(np.radians(variables.turnIncline)) * variables.roadWidth)
+    minY = dataset[0][1] - (np.sin(np.radians(variables.turnIncline) * variables.roadWidth))
+    maxY = dataset[0][1] + (np.sin(np.radians(variables.turnIncline) * variables.roadWidth))
 
     # plots triangle to graph (road)
-    triangleX = dataset[0][0] - (np.cos(np.radians(turnIncline)) * roadWidth / 2)
-    triangleY = dataset[0][1] - (np.sin(np.radians(turnIncline) * roadWidth / 2))
-    add_road(plot, roadWidth, turnIncline, triangleX, triangleY)
+    triangleX = dataset[0][0] - (np.cos(np.radians(variables.turnIncline)) * variables.roadWidth / 2)
+    triangleY = dataset[0][1] - (np.sin(np.radians(variables.turnIncline) * variables.roadWidth / 2))
+    add_road(plot, variables.roadWidth, variables.turnIncline, triangleX, triangleY)
 
     # initialize graph
     plot.set_xlim(minX, maxX)

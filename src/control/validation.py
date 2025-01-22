@@ -1,44 +1,57 @@
-import numpy as np
-from resources.constants import turnAngle, velocity, gravityAcceleration
-from resources.constants import CONSTRAINTS
-from resources import constants
+import yaml
+import os
+
+from resources import variables
 
 
-def validate_parameters(parameters, constraints):
-    """
-    Validates parameters against the defined constraints in CONSTANT_RANGES.
-    """
-    errors = []
-    ignored_count = 0  # Track the number of ignored parameters
-    for param, value in parameters.items():
-        if param in constraints:  # Check if a constraint is defined for the parameter
-            min_value, max_value = constraints[param]
-            if not (min_value <= value <= max_value):
-                errors.append(f"'{param}' ({value}) is out of bounds [{min_value}, {max_value}].")
-        else:
-            print(f"\t'{param}' has no defined constraint. Ignoring...")
-            ignored_count += 1  # Increment ignored parameters counter
-    return errors, ignored_count
+def get_absolute_path(relative_path):
+    # Construct the absolute path to the file
+    script_dir = os.path.dirname(__file__)  # Directory of this script
+    combined_path = os.path.join(script_dir, relative_path)  # combine two paths
+    return os.path.normpath(combined_path)  # get absolute path
 
 
+def validate_and_assign_parameters(path):
+    # Load the file
+    with open(path, 'r') as f:
+        data = yaml.safe_load(f)
+
+    parameters = data.get("parameters", {})
+
+    for category, items in parameters.items():
+        print(f"\tCategory: {category}")
+        for param_name, param_details in items.items():
+            value = param_details.get("value")
+            range_ = param_details.get("range")
+
+            # Add the range to constraints if defined
+            if range_ is not None:
+                variables.CONSTRAINTS[param_name] = tuple(range_)  # Add to the constraints dictionary
+
+            # Skip validation if range is not defined
+            if range_ is None:
+                print(f"\t\t{param_name}: Skipping validation (no range). Assigned value: {value}")
+                setattr(variables, param_name, value)  # Assign to variables module dynamically
+                continue
+
+            # Validate value against range
+            if value is not None and range_[0] <= value <= range_[1]:
+                print(f"\t\t{param_name}: Valid. Assigned value: {value}")
+                setattr(variables, param_name, value)  # Assign to variables module dynamically
+            elif value is not None:
+                print(f"\t\t{param_name}: Invalid. Value {value} out of range {range_}.")
+            else:
+                print(f"\t\t{param_name}: No value provided.")
+
+    # Print the populated CONSTRAINTS dictionary
+    print("\tFinal CONSTRAINTS dictionary:")
+    print(f"\t\t{variables.CONSTRAINTS}")
+
+
+# Example usage
 def validate():
     print("Validating values...")
 
-    # Create a dictionary of all constants to validate by dynamically getting the variables
-    parameters = {name: value for name, value in globals().items()
-                  if name in dir(constants) and not name.startswith('__')
-                  and not isinstance(value, type(constants))}
+    validate_and_assign_parameters(get_absolute_path(variables.configFile))
 
-    # Validate all parameters
-    validation_errors, ignored_count = validate_parameters(parameters, CONSTRAINTS)
-
-    # Output validation results
-    if validation_errors:
-        for error in validation_errors:
-            print("\t" + error)
-        print("Validation failed.")
-        exit(-1)
-    else:
-        print(f"\t{ignored_count} parameters have no constraint and have been ignored.")
-        print("\tParameters with constraints are not out of bounds.")
-        print("Validation finished.")
+    print("Validation finished.")
