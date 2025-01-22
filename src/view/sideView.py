@@ -42,8 +42,9 @@ def init_graph(plot, dataset):
     plot.autoscale(True)
 
     # add relevant simulation data
-    add_point(plot, dataset)
-    add_vectors(plot, dataset)
+    origin = [dataset[0][0], dataset[0][1]]
+    add_point(plot, origin)
+    add_vectors(plot, dataset, origin)
 
 
 def add_road(plot, hypotenuse_length, angle_degrees, x1, y1):
@@ -79,7 +80,7 @@ def add_road(plot, hypotenuse_length, angle_degrees, x1, y1):
     plot.plot([x1, x2], [y1, y2], '-', color='black', label='Hypotenuse')  # Hypotenuse
 
 
-def add_point(plot, dataset):
+def add_point(plot, origin):
     """
     Adds the current position of the car to the plot as a point.
 
@@ -94,10 +95,10 @@ def add_point(plot, dataset):
         None
     """
     # add the current position of the car to the graph
-    plot.scatter(dataset[0][0], dataset[0][1], color='grey', marker='.', s=400)
+    plot.scatter(origin[0], origin[1], color='grey', marker='.', s=400)
 
 
-def add_vectors(plot, dataset):
+def add_vectors(plot, dataset, origin):
     """
     Adds vectors representing various forces to the plot, rotating them to the correct orientation based on the
     current angle of the curve.
@@ -117,13 +118,13 @@ def add_vectors(plot, dataset):
         dataset[i] = transform_vector(dataset[i], 0, np.radians(dataset[1] * -1), 0)
 
     # display vectors
-    plot.quiver(dataset[0][0], dataset[0][1], dataset[7][0], dataset[7][1], angles='xy', scale_units='xy', scale=6999,
+    plot.quiver(origin[0], origin[1], dataset[7][0], dataset[7][1], angles='xy', scale_units='xy', scale=6999,
                 color='purple', alpha=1)  # f_gravity_parallel
-    plot.quiver(dataset[0][0], dataset[0][1], dataset[8][0], dataset[8][1], angles='xy', scale_units='xy', scale=6999,
+    plot.quiver(origin[0], origin[1], dataset[8][0], dataset[8][1], angles='xy', scale_units='xy', scale=6999,
                 color='blue', alpha=1)  # f_static_friction
-    plot.quiver(dataset[0][0], dataset[0][1], dataset[9][0], dataset[9][1], angles='xy', scale_units='xy', scale=6999,
+    plot.quiver(origin[0], origin[1], dataset[9][0], dataset[9][1], angles='xy', scale_units='xy', scale=6999,
                 color='purple', alpha=1)  # f_neutral
-    plot.quiver(dataset[0][0], dataset[0][1], dataset[10][0], dataset[10][1], angles='xy', scale_units='xy', scale=6999,
+    plot.quiver(origin[0], origin[1], dataset[10][0], dataset[10][1], angles='xy', scale_units='xy', scale=6999,
                 color='yellow', alpha=1)  # f_road
-    plot.quiver(dataset[0][0], dataset[0][1], dataset[11][0], dataset[11][1], angles='xy', scale_units='xy',
+    plot.quiver(origin[0], origin[1], dataset[11][0], dataset[11][1], angles='xy', scale_units='xy',
                 scale=6999, color='purple', alpha=1)  # f_gravity
