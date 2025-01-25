@@ -3,11 +3,12 @@ Following program is a simulation of a car driving through an inclined turn. It 
 
 Software information: <br/>
 The program uses Python only (tested with version 3.13.1). <br/>
-It has been tested on Windows 11 (24H2) and GNU-Linux (Fedora & Debian). <br/>
+It has been tested on Windows 11 (24H2) and GNU-Linux Fedora (v41) and Debian (bookworm). <br/>
 
 
 Program dependencies: <br/>
-numpy, matplotlib, scipy, yaml <br/>
+To install dependencies (in project folder): pip install -r requirements.txt <br/>
+numpy (2.2.2), matplotlib (3.10.0), scipy (1.15.1), pyyaml (6.0.2) <br/>
 
 
 Running the program: <br/>
