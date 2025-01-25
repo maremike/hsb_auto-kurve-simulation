@@ -3,7 +3,7 @@ from scipy.stats import qmc
 from scipy.optimize import minimize
 
 from control.formulae import init_vectors, transform_vector
-from resources import variables
+from model import variables
 
 
 def optimize():

@@ -1,7 +1,7 @@
 import numpy as np
 
 from control.formulae import get_Coordinates, transform_vector, get_radius, get_circle_circumference
-from resources import variables
+from model import variables
 
 
 def simulate():

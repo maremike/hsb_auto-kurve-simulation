@@ -1,7 +1,7 @@
 from control.validation import validate
 from control.optimization import optimize
 from control.simulation import simulate
-from resources import variables
+from model import variables
 from view.wholeView import init_views
 
 """
@@ -20,8 +20,6 @@ of the surrounding air may be modified as well. But beware, if you change the ra
 
 Lastly, upon the completion of the simulation, the program presents a window displaying the course of the simulation. 
 It reveals a particular span of time, during which the vectors did point in their respective directions.
-
-Following dependencies are used: numpy, matplotlib, scipy, yaml, os
 
 Signed, Michael Markov (mmarkov)
 

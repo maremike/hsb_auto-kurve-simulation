@@ -1,5 +1,5 @@
 # Config file path
-configFile = "../resources/config.yaml"
+configFile = "./config.yaml"
 
 # Declare variables
 turnAngle = None

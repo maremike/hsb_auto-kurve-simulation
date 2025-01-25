@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from resources import variables
+from model import variables
 
 
 def init_graph(plot, dataList, datasetNumber):

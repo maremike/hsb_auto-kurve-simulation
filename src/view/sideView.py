@@ -1,7 +1,7 @@
 import numpy as np
 
 from control.formulae import transform_vector
-from resources import variables
+from model import variables
 
 
 def init_graph(plot, dataset):

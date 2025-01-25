@@ -53,27 +53,27 @@ parameters:
       unit: "Pa"
       range: [ 950, 1000 ] # minimum and maximum average values for air pressure on earth
   optimization:
-    weight_mass:
-      value: 1
+    weight_mass: # optimization weighting
+      value: 1 # prioritize reducing mass
       unit: ""
       range:
-    weight_staticFriction:
+    weight_staticFriction: # optimization weighting
       value: 0
       unit: ""
       range:
-    weight_turnIncline:
+    weight_turnIncline: # optimization weighting
       value: 0
       unit: ""
       range:
-    weight_cdValue:
+    weight_cdValue: # optimization weighting
       value: 0
       unit: ""
       range:
-    weight_frontArea:
-      value: 0.5
+    weight_frontArea: # optimization weighting
+      value: 0.5 # reduce front area
       unit: ""
       range:
-    weight_atmosphericPressure:
+    weight_atmosphericPressure: # optimization weighting
       value: 0
       unit: ""
       range:
@@ -82,12 +82,12 @@ parameters:
       value: 20
       unit: ""
       range:
-    functionT:
+    functionT: # responsible for plotting with the specified amounts of steps
       value: 400
       unit: ""
       range:
     inaccuracyTolerance: # tolerance value that lets slight inaccuracy pass
-      value: 0.003
+      value: 0.004
       unit: ""
       range:
     curveAngle: # angle of the curve

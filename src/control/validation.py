@@ -1,7 +1,7 @@
 import yaml
 import os
 
-from resources import variables
+from model import variables
 
 
 def validate():
@@ -30,11 +30,10 @@ def get_absolute_path(relative_path):
         relative_path (str): The relative path of the file to be converted.
 
     Returns:
-        str: The absolute file path formed by combining the script's directory with the relative path.
+        str: The absolute file path formed by combining the project's directory with the relative path.
     """
-    # construct the absolute path to the file
-    script_dir = os.path.dirname(__file__)  # Directory of this script
-    combined_path = os.path.join(script_dir, relative_path)  # combine two paths
+    project_dir = os.path.abspath(os.path.join(os.getcwd(), "../../")) # Project directory
+    combined_path = os.path.join(project_dir, relative_path)  # combine two paths
     return os.path.normpath(combined_path)  # get absolute path
 
 
