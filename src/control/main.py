@@ -7,10 +7,10 @@ from view.wholeView import init_views
 """
 To whomever it may concern,
 
-This code hath been devised under a contract with the Hochschule Bremen (HSB). 
-The coordinator of said contract was Prof. Dr. Patrick Draheim.
+This code is part of a task for the course HMINF (WiSe 2024/2025) at the Hochschule Bremen (HSB). 
+The coordinator is Prof. Dr. Patrick Draheim.
 
-This is my work. It is a simulation which, based on the input parameters, optimizes the remaining ones and simulates a 
+This is my work. It is a simulation which based on the input parameters, optimizes the remaining ones and simulates a 
 car traversing an inclined turn. The parameters may be adjusted in the configuration file, allowing for the simulation 
 of diverse vehicles and various types of curves. The program makes use of three dimensional space, and vector rotations.
 
