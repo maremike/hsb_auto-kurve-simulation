@@ -3,7 +3,7 @@ Following program is a simulation of a car driving through an inclined turn. It 
 
 Software information: <br/>
 The program uses Python only (tested with version 3.13.1). <br/>
-It has been tested on Windows 11 (24H2) and GNU-Linux Fedora (v41) and Debian (bookworm). <br/>
+It has been tested on Windows 11 (24H2) and GNU-Linux Fedora (v41). <br/>
 
 
 Program dependencies: <br/>
