@@ -10,9 +10,11 @@ Program dependencies:
 numpy, matplotlib, scipy, yaml
 
 
-To run the program: 
+Running the program: 
 Locate the file main.py (in src/control/) and run it.
-A different approach would be to download the release file and run that. 
+A different approach would be to download the release file and run that.
+What each color of vector is for can be seen in the code under the package view. Or in the pdf assigned to the task.
+All input and output parameters as well as the states of the program can be read from the console.
 
 
 Changing the configuration: 
