@@ -12,7 +12,7 @@ numpy (2.2.2), matplotlib (3.10.0), scipy (1.15.1), pyyaml (6.0.2) <br/>
 
 
 Running the program: <br/>
-Locate the file main.py (in src/control/) and run it. <br/>
+Locate the file main.py (in src/control/) and run it using an IDE (tested with IntelliJ IDea 2024.3.1.1). <br/>
 A different approach would be to download the release file and run that. <br/>
 What each color of vector is for can be seen in the code under the package view. Or in the pdf assigned to the task. <br/>
 All input and output parameters as well as the states of the program can be read from the console. <br/>
